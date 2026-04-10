@@ -16,9 +16,43 @@ set(TS_FILES shiritori-client_en_150.ts)
 
 set(PROJECT_SOURCES
         main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
+        
+        # Application
+        src/application.h
+        src/application.cpp
+        
+        # Screens
+        src/screens/loginscreen.h
+        src/screens/loginscreen.cpp
+        src/screens/mainscreen.h
+        src/screens/mainscreen.cpp
+        src/screens/searchgamescreen.h
+        src/screens/searchgamescreen.cpp
+        src/screens/gamescreen.h
+        src/screens/gamescreen.cpp
+        src/screens/statsscreen.h
+        src/screens/statsscreen.cpp
+        
+        # Models
+        src/models/user.h
+        src/models/user.cpp
+        src/models/game.h
+        src/models/game.cpp
+
+        # Services
+        src/services/apiservice.h
+        src/services/apiservice.cpp
+        src/services/gamelogic.h
+        src/services/gamelogic.cpp
+        
+        # Utils
+        src/utils/constants.h
+        src/utils/appstate.h
+        src/utils/appstate.cpp
+        
+        # Resources
+        resources/resources.qrc
+        
         ${TS_FILES}
 )
 

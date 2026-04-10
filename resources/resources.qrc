@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <!-- TODO: Add images, icons, etc. -->
+        <!-- <file>images/icon.png</file> -->
+        <!-- <file>styles/style.qss</file> -->
+    </qresource>
+</RCC>
