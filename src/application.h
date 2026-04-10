@@ -3,7 +3,11 @@
 
 #include <QMainWindow>
 #include <QStackedWidget>
+#include <memory>
 #include "utils/screennavigator.h"
+
+class TcpClient;
+class ConnectionStatusWidget;
 
 class Application : public QMainWindow
 {
@@ -19,6 +23,8 @@ private:
 
     QStackedWidget *m_stackedWidget = nullptr;
     ScreenNavigator *m_navigator = nullptr;
+    std::unique_ptr<TcpClient> m_tcpClient;
+    ConnectionStatusWidget *m_connectionStatusWidget = nullptr;
 
     // Screen pointers
     class BaseScreen *m_loginScreen = nullptr;

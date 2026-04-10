@@ -1,55 +1,137 @@
 #include "apiservice.h"
+#include "tcpclient.h"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDebug>
 
-bool ApiService::login(const QString &username, User &user)
+ApiService::ApiService(TcpClient *tcpClient)
+    : m_tcpClient(tcpClient)
 {
-    // TODO: Implement login logic
-    return false;
 }
 
-bool ApiService::registerUser(const QString &username, User &user)
+void ApiService::setTcpClient(TcpClient *tcpClient)
 {
-    // TODO: Implement registration logic
+    m_tcpClient = tcpClient;
+}
+
+void ApiService::setSessionId(const QString &sessionId)
+{
+    m_sessionId = sessionId;
+}
+
+bool ApiService::ensureConnected() const
+{
+    return m_tcpClient && m_tcpClient->isConnected();
+}
+
+QString ApiService::sendRequest(const QString &request)
+{
+    if (!ensureConnected())
+    {
+        qDebug() << "Not connected to server";
+        return QString();
+    }
+
+    if (!m_tcpClient->sendData(request))
+    {
+        qDebug() << "Failed to send data";
+        return QString();
+    }
+
+    return m_tcpClient->receiveData();
+}
+
+bool ApiService::login(const QString &username, QString &sessionId)
+{
+    if (!ensureConnected())
+    {
+        return false;
+    }
+
+    // TODO
+
     return false;
 }
 
 bool ApiService::createGame(const QString &gameName, Game &game)
 {
-    // TODO: Implement game creation logic
+    if (!ensureConnected() || m_sessionId.isEmpty())
+    {
+        return false;
+    }
+
+    // TODO
+
     return false;
 }
 
 bool ApiService::getAvailableGames(QList<Game> &games)
 {
-    // TODO: Implement game listing logic
+    if (!ensureConnected() || m_sessionId.isEmpty())
+    {
+        return false;
+    }
+
+    // TODO
+
     return false;
 }
 
 bool ApiService::joinGame(const QString &gameId, const User &user)
 {
-    // TODO: Implement join game logic
+    if (!ensureConnected() || m_sessionId.isEmpty())
+    {
+        return false;
+    }
+
+    // TODO
+
     return false;
 }
 
 bool ApiService::getGameInfo(const QString &gameId, Game &game)
 {
-    // TODO: Implement get game info logic
+    if (!ensureConnected() || m_sessionId.isEmpty())
+    {
+        return false;
+    }
+
+    // TODO
+
     return false;
 }
 
 bool ApiService::submitWord(const QString &gameId, const User &user, const QString &word)
 {
-    // TODO: Implement word submission logic
+    if (!ensureConnected() || m_sessionId.isEmpty())
+    {
+        return false;
+    }
+
+    // TODO
+
     return false;
 }
 
 bool ApiService::exitGame(const QString &gameId, const User &user)
 {
-    // TODO: Implement exit game logic
+    if (!ensureConnected() || m_sessionId.isEmpty())
+    {
+        return false;
+    }
+
+    // TODO
+
     return false;
 }
 
 bool ApiService::getUserStats(const User &user)
 {
-    // TODO: Implement get user stats logic
+    if (!ensureConnected() || m_sessionId.isEmpty())
+    {
+        return false;
+    }
+
+    // TODO
     return false;
 }

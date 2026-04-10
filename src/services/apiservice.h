@@ -6,30 +6,34 @@
 #include "../models/user.h"
 #include "../models/game.h"
 
+class TcpClient;
+
 class ApiService
 {
 public:
-    ApiService() = default;
+    explicit ApiService(TcpClient *tcpClient = nullptr);
 
-    // TODO: User management
-    bool login(const QString &username, User &user);
-    bool registerUser(const QString &username, User &user);
+    void setTcpClient(TcpClient *tcpClient);
+    void setSessionId(const QString &sessionId);
 
-    // TODO: Game management
+    bool login(const QString &username, QString &sessionId);
+
     bool createGame(const QString &gameName, Game &game);
     bool getAvailableGames(QList<Game> &games);
     bool joinGame(const QString &gameId, const User &user);
     bool getGameInfo(const QString &gameId, Game &game);
 
-    // TODO: Game actions
     bool submitWord(const QString &gameId, const User &user, const QString &word);
     bool exitGame(const QString &gameId, const User &user);
 
-    // TODO: Stats
     bool getUserStats(const User &user);
 
 private:
-    // TODO: Add connection management
+    bool ensureConnected() const;
+    QString sendRequest(const QString &request);
+
+    TcpClient *m_tcpClient = nullptr;
+    QString m_sessionId;
 };
 
 #endif // APISERVICE_H

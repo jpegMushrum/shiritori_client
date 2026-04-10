@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools Network Core)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Network Core)
 
 set(TS_FILES shiritori-client_en_150.ts)
 
@@ -48,6 +48,10 @@ set(PROJECT_SOURCES
         src/services/apiservice.cpp
         src/services/gamelogic.h
         src/services/gamelogic.cpp
+        src/services/tcpclient.h
+        src/services/tcpclient.cpp
+        src/services/connectionstatuswidget.h
+        src/services/connectionstatuswidget.cpp
         
         # Utils
         src/utils/constants.h
@@ -89,7 +93,7 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(shiritori-client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(shiritori-client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Core)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

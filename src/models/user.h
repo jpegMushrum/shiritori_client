@@ -12,6 +12,9 @@ public:
     QString getUsername() const;
     void setUsername(const QString &username);
 
+    QString getSessionId() const;
+    void setSessionId(const QString &sessionId);
+
     int getWins() const;
     void setWins(int wins);
 
@@ -20,6 +23,7 @@ public:
 
 private:
     QString m_username;
+    QString m_sessionId;
     int m_wins = 0;
     int m_losses = 0;
 };

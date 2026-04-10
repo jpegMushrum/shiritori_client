@@ -15,6 +15,16 @@ void User::setUsername(const QString &username)
     m_username = username;
 }
 
+QString User::getSessionId() const
+{
+    return m_sessionId;
+}
+
+void User::setSessionId(const QString &sessionId)
+{
+    m_sessionId = sessionId;
+}
+
 int User::getWins() const
 {
     return m_wins;

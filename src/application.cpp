@@ -5,11 +5,15 @@
 #include "screens/searchgamescreen.h"
 #include "screens/gamescreen.h"
 #include "screens/statsscreen.h"
+#include "services/tcpclient.h"
+#include "services/connectionstatuswidget.h"
 #include "utils/constants.h"
 #include "utils/screennavigator.h"
+#include <QWidget>
+#include <QVBoxLayout>
 
 Application::Application(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), m_tcpClient(std::make_unique<TcpClient>(this))
 {
     setupUI();
     connectSignals();
@@ -21,8 +25,14 @@ Application::~Application()
 
 void Application::setupUI()
 {
+    // Create a central widget to hold both the stacked widget and the status widget
+    auto *centralWidget = new QWidget(this);
+    auto *mainLayout = new QVBoxLayout(centralWidget);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+
     m_stackedWidget = new QStackedWidget(this);
-    setCentralWidget(m_stackedWidget);
+    mainLayout->addWidget(m_stackedWidget);
 
     m_navigator = new ScreenNavigator(m_stackedWidget, this);
 
@@ -45,6 +55,21 @@ void Application::setupUI()
     m_stackedWidget->addWidget(m_statsScreen);      // index 4 - StatsScreen
 
     m_stackedWidget->setCurrentWidget(m_loginScreen);
+
+    // Create connection status widget and add it to bottom-right
+    m_connectionStatusWidget = new ConnectionStatusWidget(this);
+    m_connectionStatusWidget->setTcpClient(m_tcpClient.get());
+
+    // Create a container for the status widget in bottom-right
+    auto *statusContainer = new QWidget(this);
+    auto *statusLayout = new QVBoxLayout(statusContainer);
+    statusLayout->setContentsMargins(10, 10, 10, 10);
+    statusLayout->addStretch();
+    statusLayout->addWidget(m_connectionStatusWidget, 0, Qt::AlignBottom | Qt::AlignRight);
+
+    mainLayout->addWidget(statusContainer);
+
+    setCentralWidget(centralWidget);
 
     setWindowTitle("Shiritori Client");
     resize(Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT);
