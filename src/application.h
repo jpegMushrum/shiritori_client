@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QStackedWidget>
+#include "utils/screennavigator.h"
 
 class Application : public QMainWindow
 {
@@ -10,19 +11,21 @@ class Application : public QMainWindow
 
 public:
     explicit Application(QWidget *parent = nullptr);
+    ~Application() override;
 
 private:
     void setupUI();
     void connectSignals();
 
     QStackedWidget *m_stackedWidget = nullptr;
+    ScreenNavigator *m_navigator = nullptr;
 
-    // TODO: Screen pointers
-    class LoginScreen *m_loginScreen = nullptr;
-    class MainScreen *m_mainScreen = nullptr;
-    class SearchGameScreen *m_searchGameScreen = nullptr;
-    class GameScreen *m_gameScreen = nullptr;
-    class StatsScreen *m_statsScreen = nullptr;
+    // Screen pointers
+    class BaseScreen *m_loginScreen = nullptr;
+    class BaseScreen *m_mainScreen = nullptr;
+    class BaseScreen *m_searchGameScreen = nullptr;
+    class BaseScreen *m_gameScreen = nullptr;
+    class BaseScreen *m_statsScreen = nullptr;
 };
 
 #endif // APPLICATION_H

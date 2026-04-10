@@ -1,21 +1,29 @@
 #ifndef MAINSCREEN_H
 #define MAINSCREEN_H
 
-#include <QWidget>
+#include "basescreen.h"
 
-class MainScreen : public QWidget
+class MainScreen : public BaseScreen
 {
     Q_OBJECT
 
 public:
     explicit MainScreen(QWidget *parent = nullptr);
 
+private slots:
+    void onNewGameButtonClicked();
+    void onSearchGameButtonClicked();
+    void onStatsButtonClicked();
+    void onLogoutButtonClicked();
+
 private:
+    void setupUI();
+
     // TODO: Add UI components
     // - Start new game button
     // - Search for existing game button
-    // - Log in / Register button
     // - View stats button
+    // - Logout button
 };
 
 #endif // MAINSCREEN_H

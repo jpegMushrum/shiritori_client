@@ -21,6 +21,10 @@ set(PROJECT_SOURCES
         src/application.h
         src/application.cpp
         
+        # Base Screen
+        src/screens/basescreen.h
+        src/screens/basescreen.cpp
+        
         # Screens
         src/screens/loginscreen.h
         src/screens/loginscreen.cpp
@@ -49,6 +53,8 @@ set(PROJECT_SOURCES
         src/utils/constants.h
         src/utils/appstate.h
         src/utils/appstate.cpp
+        src/utils/screennavigator.h
+        src/utils/screennavigator.cpp
         
         # Resources
         resources/resources.qrc
