@@ -46,6 +46,8 @@ set(PROJECT_SOURCES
         # Services
         src/services/apiservice.h
         src/services/apiservice.cpp
+        src/services/serverprotocol.h
+        src/services/serverprotocol.cpp
         src/services/gamelogic.h
         src/services/gamelogic.cpp
         src/services/tcpclient.h

@@ -5,6 +5,16 @@ Game::Game(const QString &name)
 {
 }
 
+qulonglong Game::getGameId() const
+{
+    return m_gameId;
+}
+
+void Game::setGameId(qulonglong gameId)
+{
+    m_gameId = gameId;
+}
+
 QString Game::getName() const
 {
     return m_name;
@@ -54,4 +64,24 @@ QString Game::getLastKana() const
 void Game::setLastKana(const QString &kana)
 {
     m_lastKana = kana;
+}
+
+qulonglong Game::getAdminId() const
+{
+    return m_adminId;
+}
+
+void Game::setAdminId(qulonglong adminId)
+{
+    m_adminId = adminId;
+}
+
+qulonglong Game::getLastPlayerId() const
+{
+    return m_lastPlayerId;
+}
+
+void Game::setLastPlayerId(qulonglong lastPlayerId)
+{
+    m_lastPlayerId = lastPlayerId;
 }

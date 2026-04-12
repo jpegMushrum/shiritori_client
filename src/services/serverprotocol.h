@@ -1,0 +1,90 @@
+#ifndef SERVERPROTOCOL_H
+#define SERVERPROTOCOL_H
+
+#include <QString>
+#include <QList>
+#include <optional>
+
+// Handle Word Response Status Codes
+enum class HandleWordStatus {
+    OK,
+    GOT_ERROR,
+    WRONG_ORDER,
+    NOT_JAPANESE_WORD,
+    NO_SPEACH_PART,
+    NO_FOUND_WORD,
+    GOT_END_WORD,
+    GOT_DOUBLED_WORD,
+    CANT_JOIN_WORDS,
+    GAME_NOT_FOUND,
+    GAME_STOPPED,
+    NO_FOUND_PLAYER,
+    UNKNOWN
+};
+
+// User info from getUserInfo
+struct UserInfo {
+    qulonglong userId;
+    QString nickname;
+    double averageWordsPerGame;
+};
+
+// Game context from getActiveGames, getGameInfo, startNewGame
+struct GameContext {
+    qulonglong gameId;
+    int wordsCount;
+    int playersCount;
+    qulonglong adminId;
+    qulonglong lastPlayerId;
+    QString lastKana;
+};
+
+// Game history entry from getGamesHistory
+struct GameHistoryEntry {
+    qulonglong gameId;
+    qulonglong userId;
+    int wordsCount;
+    int place;
+};
+
+// New word update from subscription
+struct NewWordUpdate {
+    qulonglong gameId;
+    QString kanji;
+    QString meaning;
+    QList<QString> partsOfSpeech;
+    QList<QString> readings;
+};
+
+// Protocol parsing utilities
+class ServerProtocolParser {
+public:
+    // Parse UserInfo from "userId nickname averageWordsPerGame"
+    static std::optional<UserInfo> parseUserInfo(const QString &response);
+
+    // Parse GameContext from "gameId wordsCount playersCount adminId lastPlayerId lastKana"
+    static std::optional<GameContext> parseGameContext(const QString &response);
+
+    // Parse multiple GameContext separated by semicolons
+    static QList<GameContext> parseMultipleGameContexts(const QString &response);
+
+    // Parse GameHistoryEntry from "gameId userId wordsCount place"
+    static std::optional<GameHistoryEntry> parseGameHistoryEntry(const QString &response);
+
+    // Parse multiple game history entries separated by semicolons
+    static QList<GameHistoryEntry> parseGameHistory(const QString &response);
+
+    // Parse HandleWordStatus from response
+    static HandleWordStatus parseHandleWordStatus(const QString &response);
+
+    // Check if response is an error
+    static bool isError(const QString &response);
+
+    // Extract error message
+    static QString extractErrorMessage(const QString &response);
+
+    // Parse NewWordUpdate from JSON-like format
+    static std::optional<NewWordUpdate> parseNewWordUpdate(const QString &response);
+};
+
+#endif // SERVERPROTOCOL_H

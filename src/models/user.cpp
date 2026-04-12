@@ -44,3 +44,23 @@ void User::setLosses(int losses)
 {
     m_losses = losses;
 }
+
+qulonglong User::getUserId() const
+{
+    return m_userId;
+}
+
+void User::setUserId(qulonglong userId)
+{
+    m_userId = userId;
+}
+
+double User::getAverageWordsPerGame() const
+{
+    return m_averageWordsPerGame;
+}
+
+void User::setAverageWordsPerGame(double average)
+{
+    m_averageWordsPerGame = average;
+}

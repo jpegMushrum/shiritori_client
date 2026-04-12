@@ -56,6 +56,16 @@ void AppState::setUsername(const QString &username)
     m_username = username;
 }
 
+TcpClient* AppState::getTcpClient() const
+{
+    return m_tcpClient;
+}
+
+void AppState::setTcpClient(TcpClient *tcpClient)
+{
+    m_tcpClient = tcpClient;
+}
+
 bool AppState::isLoggedIn() const
 {
     return !m_currentUser.getUsername().isEmpty() && !m_sessionId.isEmpty();

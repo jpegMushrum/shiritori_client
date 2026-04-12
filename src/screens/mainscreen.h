@@ -3,6 +3,9 @@
 
 #include "basescreen.h"
 
+class ApiService;
+struct GameContext;
+
 class MainScreen : public BaseScreen
 {
     Q_OBJECT
@@ -15,15 +18,14 @@ private slots:
     void onSearchGameButtonClicked();
     void onStatsButtonClicked();
     void onLogoutButtonClicked();
+    void onGameStarted(const GameContext &game);
+    void onGameStartError(const QString &error);
 
 private:
     void setupUI();
+    void startNewGame();
 
-    // TODO: Add UI components
-    // - Start new game button
-    // - Search for existing game button
-    // - View stats button
-    // - Logout button
+    ApiService *m_apiService = nullptr;
 };
 
 #endif // MAINSCREEN_H

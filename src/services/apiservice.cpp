@@ -1,137 +1,112 @@
 #include "apiservice.h"
 #include "tcpclient.h"
-#include <QJsonDocument>
-#include <QJsonObject>
+
+#include <QTcpSocket>
 #include <QDebug>
 
-ApiService::ApiService(TcpClient *tcpClient)
-    : m_tcpClient(tcpClient)
+ApiService::ApiService(QObject *parent)
+    : QObject(parent)
 {
+}
+
+ApiService::~ApiService()
+{
+    if (m_gameSocket) {
+        m_gameSocket->disconnectFromHost();
+    }
 }
 
 void ApiService::setTcpClient(TcpClient *tcpClient)
 {
     m_tcpClient = tcpClient;
+    connect(tcpClient, &TcpClient::dataReceived, this, &ApiService::onGetResponse);
 }
 
-void ApiService::setSessionId(const QString &sessionId)
-{
-    m_sessionId = sessionId;
-}
+// ==================== Authentication ====================
 
-bool ApiService::ensureConnected() const
+void ApiService::loginAsync(const QString &username)
 {
-    return m_tcpClient && m_tcpClient->isConnected();
-}
-
-QString ApiService::sendRequest(const QString &request)
-{
-    if (!ensureConnected())
-    {
-        qDebug() << "Not connected to server";
-        return QString();
+    if (!m_tcpClient) {
+        m_lastError = "TCP client not set";
     }
 
-    if (!m_tcpClient->sendData(request))
-    {
-        qDebug() << "Failed to send data";
-        return QString();
-    }
+    QString command = QString("login %1").arg(username);
+    sendCommand(command);
 
-    return m_tcpClient->receiveData();
+    qDebug() << "Login command: " << command;
 }
 
-bool ApiService::login(const QString &username, QString &sessionId)
+void ApiService::logoutAsync(const QString &sessionId)
 {
-    if (!ensureConnected())
-    {
-        return false;
+    if (!m_tcpClient) {
+        m_lastError = "TCP client not set";
     }
 
-    // TODO
+    QString command = QString("logout %1").arg(sessionId);
+    sendCommand(command);
 
-    return false;
+    qDebug() << "Logout command: " << command;
 }
 
-bool ApiService::createGame(const QString &gameName, Game &game)
+// ==================== Error Handling ====================
+
+QString ApiService::getLastError() const
 {
-    if (!ensureConnected() || m_sessionId.isEmpty())
-    {
-        return false;
-    }
-
-    // TODO
-
-    return false;
+    return m_lastError;
 }
 
-bool ApiService::getAvailableGames(QList<Game> &games)
+void ApiService::clearLastError()
 {
-    if (!ensureConnected() || m_sessionId.isEmpty())
-    {
-        return false;
-    }
-
-    // TODO
-
-    return false;
+    m_lastError.clear();
 }
 
-bool ApiService::joinGame(const QString &gameId, const User &user)
+// ==================== Private Methods ====================
+
+void ApiService::sendCommand(const QString &command)
 {
-    if (!ensureConnected() || m_sessionId.isEmpty())
-    {
-        return false;
+    if (!m_tcpClient) {
+        m_lastError = "TCP client not set";
     }
 
-    // TODO
-
-    return false;
+    if (!m_tcpClient->sendData(command + "\n")) {
+        m_lastError = "Failed to send command";
+    }
 }
 
-bool ApiService::getGameInfo(const QString &gameId, Game &game)
+bool ApiService::isBooleanSuccess(const QString &response)
 {
-    if (!ensureConnected() || m_sessionId.isEmpty())
-    {
-        return false;
-    }
-
-    // TODO
-
-    return false;
+    return response.contains("successfully", Qt::CaseInsensitive) ||
+           response == "OK" ||
+           response == "Player added successfully";
 }
 
-bool ApiService::submitWord(const QString &gameId, const User &user, const QString &word)
-{
-    if (!ensureConnected() || m_sessionId.isEmpty())
-    {
-        return false;
+void ApiService::loginResponse(QString response) {
+    if (ServerProtocolParser::isError(response)) {
+        m_lastError = response;
+        emit loginError(response);
+        return;
     }
 
-    // TODO
-
-    return false;
+    QString sessionId = response.trimmed();
+    emit loginSuccess(sessionId);
 }
+// ==================== Slots ====================
 
-bool ApiService::exitGame(const QString &gameId, const User &user)
-{
-    if (!ensureConnected() || m_sessionId.isEmpty())
-    {
-        return false;
+void ApiService::onGetResponse(QString response) {
+    if (response.isEmpty()) {
+        qDebug() << "Got empty response";
+        return;
     }
 
-    // TODO
+    bool ok = false;
+    QString idString = response.split(' ')[0];
+    int id = idString.toInt(&ok, 10);
 
-    return false;
-}
-
-bool ApiService::getUserStats(const User &user)
-{
-    if (!ensureConnected() || m_sessionId.isEmpty())
-    {
-        return false;
+    if (!ok) {
+        qDebug() << "Got incorrect response id";
+        return;
     }
 
-    // TODO
-    return false;
+    std::function<void(QString)> action = m_pendingRequests[id];
+    action(response.slice(idString.size()).trimmed());
 }

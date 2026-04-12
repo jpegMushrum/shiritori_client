@@ -26,6 +26,8 @@ bool TcpClient::connectToHost(const QString &host, int port)
         disconnect();
     }
 
+    m_host = host;
+    m_port = port;
     m_socket->connectToHost(host, port);
     return m_socket->waitForConnected(3000);
 }
@@ -65,6 +67,16 @@ QString TcpClient::receiveData()
     }
 
     return QString::fromUtf8(m_socket->readAll());
+}
+
+QString TcpClient::getHost() const
+{
+    return m_host;
+}
+
+int TcpClient::getPort() const
+{
+    return m_port;
 }
 
 void TcpClient::onConnected()

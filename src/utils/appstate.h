@@ -3,6 +3,8 @@
 
 #include "../models/user.h"
 
+class TcpClient;
+
 class AppState
 {
 public:
@@ -23,6 +25,9 @@ public:
     QString getUsername() const;
     void setUsername(const QString &username);
 
+    TcpClient* getTcpClient() const;
+    void setTcpClient(TcpClient *tcpClient);
+
     bool isLoggedIn() const;
     void logout();
 
@@ -33,6 +38,7 @@ private:
     int m_serverPort = 5000;
     QString m_sessionId;
     QString m_username;
+    TcpClient *m_tcpClient = nullptr;
 };
 
 #endif // APPSTATE_H

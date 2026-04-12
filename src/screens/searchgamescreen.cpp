@@ -5,6 +5,11 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QListWidgetItem>
+#include <QDebug>
+#include "../services/serverprotocol.h"
+#include "../services/apiservice.h"
+#include "../utils/appstate.h"
 
 SearchGameScreen::SearchGameScreen(QWidget *parent)
     : BaseScreen(parent)
@@ -24,9 +29,9 @@ void SearchGameScreen::setupUI()
     mainLayout->addSpacing(15);
 
     auto *searchLayout = new QHBoxLayout();
-    auto *searchInput = new QLineEdit(this);
-    searchInput->setPlaceholderText("Search by game name...");
-    searchLayout->addWidget(searchInput);
+    m_searchInput = new QLineEdit(this);
+    m_searchInput->setPlaceholderText("Search by game name...");
+    searchLayout->addWidget(m_searchInput);
 
     auto *refreshButton = new QPushButton("Refresh", this);
     refreshButton->setMaximumWidth(100);
@@ -37,8 +42,8 @@ void SearchGameScreen::setupUI()
 
     mainLayout->addSpacing(15);
 
-    auto *gamesList = new QListWidget(this);
-    mainLayout->addWidget(gamesList);
+    m_gamesList = new QListWidget(this);
+    mainLayout->addWidget(m_gamesList);
 
     mainLayout->addSpacing(15);
 
@@ -54,12 +59,71 @@ void SearchGameScreen::setupUI()
     buttonLayout->addWidget(backButton);
 
     mainLayout->addLayout(buttonLayout);
+
+    // Setup API service
+    m_apiService = new ApiService(this);
+    connect(m_apiService, &ApiService::activeGamesReceived, this, &SearchGameScreen::onActiveGamesReceived);
+    connect(m_apiService, &ApiService::activeGamesError, this, &SearchGameScreen::onActiveGamesError);
+
+    // Load games on creation
+    loadGames();
+}
+
+void SearchGameScreen::loadGames()
+{
+    AppState &appState = AppState::getInstance();
+    if (!appState.isLoggedIn()) {
+        qDebug() << "Not logged in";
+        return;
+    }
+
+    // Ensure API service has the TCP client
+    if (appState.getTcpClient()) {
+        m_apiService->setTcpClient(appState.getTcpClient());
+    }
+
+    m_gamesList->clear();
+    m_gamesList->addItem("Loading games...");
+
+    // m_apiService->getActiveGamesAsync();
+}
+
+void SearchGameScreen::displayGames(const QList<GameContext> &games)
+{
+    m_gamesList->clear();
+
+    if (games.isEmpty()) {
+        m_gamesList->addItem("No games available");
+        return;
+    }
+
+    m_availableGames = games;
+
+    for (const auto &game : games) {
+        QString gameInfo = QString("Game %1 - Players: %2, Words: %3, Last: %4")
+            .arg(game.gameId)
+            .arg(game.playersCount)
+            .arg(game.wordsCount)
+            .arg(game.lastKana);
+
+        auto *item = new QListWidgetItem(gameInfo, m_gamesList);
+        item->setData(Qt::UserRole, static_cast<qulonglong>(game.gameId));
+        m_gamesList->addItem(item);
+    }
 }
 
 void SearchGameScreen::onJoinGameButtonClicked()
 {
+    auto *selectedItem = m_gamesList->currentItem();
+    if (!selectedItem) {
+        qDebug() << "No game selected";
+        return;
+    }
+
+    qulonglong gameId = selectedItem->data(Qt::UserRole).toULongLong();
+
     QVariantMap gameData;
-    gameData["gameId"] = "selected_game_id";
+    gameData["gameId"] = gameId;
     navigate(ScreenNavigator::GameScreen, gameData);
 }
 
@@ -70,5 +134,18 @@ void SearchGameScreen::onBackButtonClicked()
 
 void SearchGameScreen::onRefreshButtonClicked()
 {
-    // TODO: Refresh games list from server
+    loadGames();
+}
+
+void SearchGameScreen::onActiveGamesReceived(const QList<GameContext> &games)
+{
+    qDebug() << "Received" << games.size() << "games";
+    displayGames(games);
+}
+
+void SearchGameScreen::onActiveGamesError(const QString &error)
+{
+    qDebug() << "Games error:" << error;
+    m_gamesList->clear();
+    m_gamesList->addItem("Error: " + error);
 }

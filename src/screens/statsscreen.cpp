@@ -2,6 +2,10 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QDebug>
+#include "../services/serverprotocol.h"
+#include "../services/apiservice.h"
+#include "../utils/appstate.h"
 
 StatsScreen::StatsScreen(QWidget *parent)
     : BaseScreen(parent)
@@ -20,21 +24,18 @@ void StatsScreen::setupUI()
 
     mainLayout->addSpacing(30);
 
-    auto *winsLabel = new QLabel("Wins: 0", this);
-    winsLabel->setStyleSheet("font-size: 16px;");
-    mainLayout->addWidget(winsLabel);
+    m_usernameLabel = new QLabel("Username: Loading...", this);
+    m_usernameLabel->setStyleSheet("font-size: 16px;");
+    mainLayout->addWidget(m_usernameLabel);
 
-    auto *lossesLabel = new QLabel("Losses: 0", this);
-    lossesLabel->setStyleSheet("font-size: 16px;");
-    mainLayout->addWidget(lossesLabel);
+    m_averageWordsLabel = new QLabel("Average Words Per Game: Loading...", this);
+    m_averageWordsLabel->setStyleSheet("font-size: 16px;");
+    mainLayout->addWidget(m_averageWordsLabel);
 
-    auto *winRateLabel = new QLabel("Win Rate: 0%", this);
-    winRateLabel->setStyleSheet("font-size: 16px;");
-    mainLayout->addWidget(winRateLabel);
-
-    auto *streakLabel = new QLabel("Best Streak: 0", this);
-    streakLabel->setStyleSheet("font-size: 16px;");
-    mainLayout->addWidget(streakLabel);
+    m_errorLabel = new QLabel(this);
+    m_errorLabel->setStyleSheet("color: red; font-size: 14px;");
+    m_errorLabel->setWordWrap(true);
+    mainLayout->addWidget(m_errorLabel);
 
     mainLayout->addSpacing(30);
 
@@ -44,9 +45,54 @@ void StatsScreen::setupUI()
     mainLayout->addWidget(backButton);
 
     mainLayout->addStretch();
+
+    // Setup API service
+    m_apiService = new ApiService(this);
+    connect(m_apiService, &ApiService::userInfoReceived, this, &StatsScreen::onUserInfoReceived);
+    connect(m_apiService, &ApiService::userInfoError, this, &StatsScreen::onUserInfoError);
+
+    // Load user stats on creation
+    loadUserStats();
+}
+
+void StatsScreen::loadUserStats()
+{
+    AppState &appState = AppState::getInstance();
+    if (!appState.isLoggedIn()) {
+        qDebug() << "Not logged in";
+        m_errorLabel->setText("Not logged in");
+        return;
+    }
+
+    // Ensure API service has the TCP client
+    if (appState.getTcpClient()) {
+        m_apiService->setTcpClient(appState.getTcpClient());
+    }
+
+    m_errorLabel->clear();
+    // m_apiService->getUserInfoAsync(appState.getSessionId());
+}
+
+void StatsScreen::displayUserStats(const UserInfo &info)
+{
+    m_usernameLabel->setText(QString("Username: %1").arg(info.nickname));
+    m_averageWordsLabel->setText(QString("Average Words Per Game: %1").arg(info.averageWordsPerGame, 0, 'f', 1));
+    m_errorLabel->clear();
 }
 
 void StatsScreen::onBackButtonClicked()
 {
     goBack();
+}
+
+void StatsScreen::onUserInfoReceived(const UserInfo &info)
+{
+    qDebug() << "User info received:" << info.nickname;
+    displayUserStats(info);
+}
+
+void StatsScreen::onUserInfoError(const QString &error)
+{
+    qDebug() << "User info error:" << error;
+    m_errorLabel->setText("Error: " + error);
 }

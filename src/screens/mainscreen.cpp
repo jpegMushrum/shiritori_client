@@ -3,6 +3,10 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QDebug>
+#include "../services/serverprotocol.h"
+#include "../services/apiservice.h"
+#include "../utils/appstate.h"
 
 MainScreen::MainScreen(QWidget *parent)
     : BaseScreen(parent)
@@ -47,13 +51,49 @@ void MainScreen::setupUI()
     mainLayout->addWidget(logoutButton);
 
     mainLayout->addStretch();
+
+    // Setup API service
+    m_apiService = new ApiService(this);
+    connect(m_apiService, &ApiService::gameStarted, this, &MainScreen::onGameStarted);
+    connect(m_apiService, &ApiService::gameStartError, this, &MainScreen::onGameStartError);
 }
 
 void MainScreen::onNewGameButtonClicked()
 {
+    startNewGame();
+}
+
+void MainScreen::startNewGame()
+{
+    AppState &appState = AppState::getInstance();
+    if (!appState.isLoggedIn()) {
+        qDebug() << "Not logged in";
+        navigate(ScreenNavigator::LoginScreen);
+        return;
+    }
+
+    // Ensure API service has the TCP client
+    if (appState.getTcpClient()) {
+        m_apiService->setTcpClient(appState.getTcpClient());
+    }
+
+    qDebug() << "Starting new game...";
+    // m_apiService->startNewGameAsync(appState.getSessionId());
+}
+
+void MainScreen::onGameStarted(const GameContext &game)
+{
+    qDebug() << "Game started with ID:" << game.gameId;
+
     QVariantMap gameData;
-    gameData["gameId"] = "";
+    gameData["gameId"] = game.gameId;
     navigate(ScreenNavigator::GameScreen, gameData);
+}
+
+void MainScreen::onGameStartError(const QString &error)
+{
+    qDebug() << "Failed to start game:" << error;
+    // Could show error dialog here
 }
 
 void MainScreen::onSearchGameButtonClicked()
@@ -68,5 +108,13 @@ void MainScreen::onStatsButtonClicked()
 
 void MainScreen::onLogoutButtonClicked()
 {
+    AppState &appState = AppState::getInstance();
+    if (!appState.isLoggedIn()) {
+        navigate(ScreenNavigator::LoginScreen);
+        return;
+    }
+
+    m_apiService->logoutAsync(appState.getSessionId());
+    appState.logout();
     navigate(ScreenNavigator::LoginScreen);
 }

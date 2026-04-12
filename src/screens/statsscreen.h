@@ -3,6 +3,10 @@
 
 #include "basescreen.h"
 
+class QLabel;
+class ApiService;
+struct UserInfo;
+
 class StatsScreen : public BaseScreen
 {
     Q_OBJECT
@@ -12,14 +16,19 @@ public:
 
 private slots:
     void onBackButtonClicked();
+    void onUserInfoReceived(const UserInfo &info);
+    void onUserInfoError(const QString &error);
 
 private:
     void setupUI();
+    void loadUserStats();
+    void displayUserStats(const UserInfo &info);
 
-    // TODO: Add UI components
-    // - User info display
-    // - Statistics display
-    // - Back button
+    QLabel *m_usernameLabel = nullptr;
+    QLabel *m_averageWordsLabel = nullptr;
+    QLabel *m_errorLabel = nullptr;
+
+    ApiService *m_apiService = nullptr;
 };
 
 #endif // STATSSCREEN_H

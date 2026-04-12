@@ -22,6 +22,9 @@ public:
     bool sendData(const QString &data);
     QString receiveData();
 
+    QString getHost() const;
+    int getPort() const;
+
 signals:
     void connected();
     void disconnected();
@@ -36,6 +39,8 @@ private slots:
 
 private:
     std::unique_ptr<QTcpSocket> m_socket;
+    QString m_host;
+    int m_port = 0;
 };
 
 #endif // TCPCLIENT_H

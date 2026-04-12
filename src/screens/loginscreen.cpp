@@ -4,14 +4,16 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QMessageBox>
+#include <QDebug>
 #include "../services/tcpclient.h"
+#include "../services/apiservice.h"
 #include "../utils/appstate.h"
 
 LoginScreen::LoginScreen(QWidget *parent)
     : BaseScreen(parent)
 {
     setupUI();
-    setupTcpClient();
+    setupApiService();
 }
 
 LoginScreen::~LoginScreen() = default;
@@ -42,8 +44,8 @@ void LoginScreen::setupUI()
     layout->addWidget(serverPortLabel);
 
     m_serverPortInput = new QLineEdit(this);
-    m_serverPortInput->setPlaceholderText("5000");
-    m_serverPortInput->setText("5000");
+    m_serverPortInput->setPlaceholderText("3000");
+    m_serverPortInput->setText("3000");
     layout->addWidget(m_serverPortInput);
 
     layout->addSpacing(10);
@@ -75,11 +77,11 @@ void LoginScreen::setupUI()
     layout->addStretch();
 }
 
-void LoginScreen::setupTcpClient()
+void LoginScreen::setupApiService()
 {
-    m_tcpClient = new TcpClient(this);
-    connect(m_tcpClient, &TcpClient::connected, this, &LoginScreen::onLoginSuccess);
-    connect(m_tcpClient, &TcpClient::connectionError, this, &LoginScreen::onLoginError);
+    m_apiService = new ApiService(this);
+    connect(m_apiService, &ApiService::loginSuccess, this, &LoginScreen::onApiLoginSuccess);
+    connect(m_apiService, &ApiService::loginError, this, &LoginScreen::onApiLoginError);
 }
 
 bool LoginScreen::validateInput()
@@ -126,34 +128,40 @@ void LoginScreen::onLoginButtonClicked()
     m_errorLabel->setText("Connecting...");
 
     AppState &appState = AppState::getInstance();
-    appState.setUsername(username);
     appState.setServerAddress(serverAddress);
     appState.setServerPort(serverPort);
+    appState.setUsername(username);
 
-    if (m_tcpClient->connectToHost(serverAddress, serverPort))
-    {
-        onLoginSuccess();
+    // Create TCP client and connect to server
+    if (!m_tcpClient) {
+        m_tcpClient = new TcpClient(this);
     }
-    else
+
+    if (!m_tcpClient->connectToHost(serverAddress, serverPort))
     {
-        onLoginError("Failed to connect to server");
+        onApiLoginError("Failed to connect to server");
+        return;
     }
+
+    // Save TCP client to AppState for later use
+    appState.setTcpClient(m_tcpClient);
+
+    // after connection, send login request
+    m_apiService->setTcpClient(m_tcpClient);
+    m_errorLabel->setText("Logging in...");
+    m_apiService->loginAsync(username);
 }
 
-void LoginScreen::onLoginSuccess()
+void LoginScreen::onApiLoginSuccess(const QString &sessionId)
 {
-    // Here you would typically send a login request to the server
-    // and wait for the sessionId response
-    // For now, we'll just navigate to the main screen
-
     AppState &appState = AppState::getInstance();
-    // TODO: Send login request via TCP and receive sessionId
-    // appState.setSessionId(receivedSessionId);
+    appState.setSessionId(sessionId);
 
+    qDebug() << "Login successful! Session ID:" << sessionId;
     navigate(ScreenNavigator::MainScreen);
 }
 
-void LoginScreen::onLoginError(const QString &errorMessage)
+void LoginScreen::onApiLoginError(const QString &errorMessage)
 {
-    m_errorLabel->setText("Error: " + errorMessage);
+    m_errorLabel->setText("Login failed: " + errorMessage);
 }

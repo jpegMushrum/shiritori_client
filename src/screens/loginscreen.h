@@ -6,6 +6,7 @@
 class QLineEdit;
 class QLabel;
 class TcpClient;
+class ApiService;
 
 class LoginScreen : public BaseScreen
 {
@@ -17,12 +18,12 @@ public:
 
 private slots:
     void onLoginButtonClicked();
-    void onLoginSuccess();
-    void onLoginError(const QString &errorMessage);
+    void onApiLoginSuccess(const QString &sessionId);
+    void onApiLoginError(const QString &errorMessage);
 
 private:
     void setupUI();
-    void setupTcpClient();
+    void setupApiService();
     bool validateInput();
 
     QLineEdit *m_serverAddressInput = nullptr;
@@ -31,6 +32,7 @@ private:
     QLabel *m_errorLabel = nullptr;
 
     TcpClient *m_tcpClient = nullptr;
+    ApiService *m_apiService = nullptr;
 };
 
 #endif // LOGINSCREEN_H
