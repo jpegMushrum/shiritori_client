@@ -50,23 +50,21 @@ void StatsScreen::setupUI()
     m_apiService = new ApiService(this);
     connect(m_apiService, &ApiService::userInfoReceived, this, &StatsScreen::onUserInfoReceived);
     connect(m_apiService, &ApiService::userInfoError, this, &StatsScreen::onUserInfoError);
+}
 
-    // Load user stats on creation
-    loadUserStats();
+void StatsScreen::onOpen(ScreenNavigator::ScreenType screen) {
+    if (screen == ScreenNavigator::StatsScreen) {
+        loadUserStats();
+    }
 }
 
 void StatsScreen::loadUserStats()
 {
     AppState &appState = AppState::getInstance();
     if (!appState.isLoggedIn()) {
-        // qDebug() << "Not logged in";
+        qDebug() << "Stats Screen Not logged in";
         m_errorLabel->setText("Not logged in");
         return;
-    }
-
-    // Ensure API service has the TCP client
-    if (appState.getTcpClient()) {
-        m_apiService->setTcpClient(appState.getTcpClient());
     }
 
     m_errorLabel->clear();

@@ -69,6 +69,11 @@ void SearchGameScreen::setupUI()
     loadGames();
 }
 
+void SearchGameScreen::onOpen(ScreenNavigator::ScreenType screen)
+{
+    // TODO: Submit word to server
+}
+
 void SearchGameScreen::loadGames()
 {
     AppState &appState = AppState::getInstance();

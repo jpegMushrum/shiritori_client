@@ -20,6 +20,7 @@ private slots:
     void onLogoutButtonClicked();
     void onGameStarted(const GameContext &game);
     void onGameStartError(const QString &error);
+    void onOpen(ScreenNavigator::ScreenType screen) override;
 
 private:
     void setupUI();

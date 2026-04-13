@@ -21,6 +21,7 @@ private slots:
     void onRefreshButtonClicked();
     void onActiveGamesReceived(const QList<GameContext> &games);
     void onActiveGamesError(const QString &error);
+    void onOpen(ScreenNavigator::ScreenType screen) override;
 
 private:
     void setupUI();

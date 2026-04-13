@@ -1,5 +1,7 @@
 #include "appstate.h"
 
+#include <QDebug>
+
 AppState &AppState::getInstance()
 {
     static AppState instance;
@@ -68,7 +70,15 @@ void AppState::setTcpClient(TcpClient *tcpClient)
 
 bool AppState::isLoggedIn() const
 {
-    return !m_currentUser.getUsername().isEmpty() && !m_sessionId.isEmpty();
+    return !m_sessionId.isEmpty();
+}
+
+ApiService* AppState::getApiService() const {
+    return m_apiService;
+}
+
+void AppState::setApiService(ApiService *apiService) {
+    m_apiService = apiService;
 }
 
 void AppState::logout()

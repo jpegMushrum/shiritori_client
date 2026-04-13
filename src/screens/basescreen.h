@@ -23,6 +23,10 @@ signals:
     void navigateToStatsScreen();
     void navigateBack();
 
+
+protected slots:
+    virtual void onOpen(ScreenNavigator::ScreenType screen) = 0;
+
 protected:
     ScreenNavigator *navigator() const;
     void navigate(ScreenNavigator::ScreenType screen, const QVariantMap &data = {});

@@ -52,10 +52,20 @@ void MainScreen::setupUI()
 
     mainLayout->addStretch();
 
-    // Setup API service
-    m_apiService = new ApiService(this);
+    // API service
+    AppState& appState = AppState::getInstance();
+
+    m_apiService = appState.getApiService();
     connect(m_apiService, &ApiService::gameStarted, this, &MainScreen::onGameStarted);
     connect(m_apiService, &ApiService::gameStartError, this, &MainScreen::onGameStartError);
+}
+
+
+void MainScreen::onOpen(ScreenNavigator::ScreenType screen)
+{
+    if (screen == ScreenNavigator::MainScreen) {
+        // Something
+    }
 }
 
 void MainScreen::onNewGameButtonClicked()
@@ -109,12 +119,16 @@ void MainScreen::onStatsButtonClicked()
 void MainScreen::onLogoutButtonClicked()
 {
     AppState &appState = AppState::getInstance();
+    qDebug() << "Logout button: " << appState.isLoggedIn() << " " << m_apiService;
     if (!appState.isLoggedIn()) {
         navigate(ScreenNavigator::LoginScreen);
         return;
     }
 
-    m_apiService->logoutAsync(appState.getSessionId());
+    if (m_apiService) {
+        m_apiService->logoutAsync(appState.getSessionId());
+    }
     appState.logout();
+
     navigate(ScreenNavigator::LoginScreen);
 }

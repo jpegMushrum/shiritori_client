@@ -13,6 +13,7 @@ public:
 private slots:
     void onSubmitButtonClicked();
     void onExitButtonClicked();
+    void onOpen(ScreenNavigator::ScreenType screen) override;
 
 private:
     void setupUI();

@@ -48,11 +48,10 @@ void ApiService::logoutAsync(const QString &sessionId)
         m_lastError = "TCP client not set";
     }
 
-    // int requestId = m_nextRequestId++;
-    // QString command = QString("%1 login %2").arg(requestId).arg(sessionId);
-    // m_pendingRequests[requestId] = [this](QString response){ logoutResponse(response); };
-    // sendCommand(command);
-    QString command = QString("logout %1").arg(sessionId);
+    int requestId = m_nextRequestId++;
+    QString command = QString("%1 logout %2").arg(requestId).arg(sessionId);
+    m_pendingRequests[requestId] = [this](QString response){ qDebug() << "Logout response: " << response; };
+
     sendCommand(command);
 
     qDebug() << "Logout command: " << command;
@@ -100,6 +99,7 @@ void ApiService::loginResponse(QString response) {
     QString sessionId = response.trimmed();
     emit loginSuccess(sessionId);
 }
+
 // ==================== Slots ====================
 
 void ApiService::onGetResponse(QString response) {
@@ -117,6 +117,11 @@ void ApiService::onGetResponse(QString response) {
         return;
     }
 
-    std::function<void(QString)> process = m_pendingRequests[id];
-    process(response.slice(idString.size()).trimmed());
+    auto process_it = m_pendingRequests.find(id);
+    if (process_it != m_pendingRequests.end()) {
+        (*process_it)(response.slice(idString.size()).trimmed());
+        m_pendingRequests.erase(process_it);
+    } else {
+        qDebug() << "Ignoring response" << response;
+    }
 }

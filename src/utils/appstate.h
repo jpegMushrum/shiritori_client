@@ -2,8 +2,7 @@
 #define APPSTATE_H
 
 #include "../models/user.h"
-
-class TcpClient;
+#include "../services/apiservice.h"
 
 class AppState
 {
@@ -28,6 +27,9 @@ public:
     TcpClient* getTcpClient() const;
     void setTcpClient(TcpClient *tcpClient);
 
+    ApiService* getApiService() const;
+    void setApiService(ApiService *apiService);
+
     bool isLoggedIn() const;
     void logout();
 
@@ -39,6 +41,7 @@ private:
     QString m_sessionId;
     QString m_username;
     TcpClient *m_tcpClient = nullptr;
+    ApiService *m_apiService = nullptr;
 };
 
 #endif // APPSTATE_H

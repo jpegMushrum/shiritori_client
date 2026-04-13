@@ -18,6 +18,7 @@ private slots:
     void onBackButtonClicked();
     void onUserInfoReceived(const UserInfo &info);
     void onUserInfoError(const QString &error);
+    void onOpen(ScreenNavigator::ScreenType screen) override;
 
 private:
     void setupUI();

@@ -38,9 +38,6 @@ signals:
     void loginSuccess(const QString &sessionId);
     void loginError(const QString &error);
 
-    void logoutSuccess();
-    void logoutError(const QString &error);
-
     // User signals
     void userInfoReceived(const UserInfo &info);
     void userInfoError(const QString &error);
@@ -85,6 +82,7 @@ private:
     int m_nextRequestId = 1;
 
     void loginResponse(QString response);
+    void logoutResponse(QString response);
 
     // Parse boolean responses like "Logged out successfully"
     bool isBooleanSuccess(const QString &response);

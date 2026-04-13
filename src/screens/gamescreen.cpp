@@ -62,6 +62,12 @@ void GameScreen::onSubmitButtonClicked()
     // TODO: Submit word to server
 }
 
+void GameScreen::onOpen(ScreenNavigator::ScreenType screen)
+{
+    // TODO: Submit word to server
+}
+
+
 void GameScreen::onExitButtonClicked()
 {
     navigate(ScreenNavigator::MainScreen);

@@ -22,12 +22,14 @@ private slots:
     void onApiLoginError(const QString &errorMessage);
     void onTcpConnectFailed(const QString &errorMessage);
     void onTcpConnectSuccess();
+    void onOpen(ScreenNavigator::ScreenType screen) override;
 
 
 private:
     void setupUI();
-    void setupApiService();
     bool validateInput();
+
+    bool m_loginRequested = false;
 
     QLineEdit *m_serverAddressInput = nullptr;
     QLineEdit *m_serverPortInput = nullptr;

@@ -13,7 +13,6 @@ LoginScreen::LoginScreen(QWidget *parent)
     : BaseScreen(parent)
 {
     setupUI();
-    setupApiService();
 }
 
 LoginScreen::~LoginScreen() = default;
@@ -74,14 +73,17 @@ void LoginScreen::setupUI()
     connect(loginButton, &QPushButton::clicked, this, &LoginScreen::onLoginButtonClicked);
     layout->addWidget(loginButton);
 
-    layout->addStretch();
-}
-
-void LoginScreen::setupApiService()
-{
-    m_apiService = new ApiService(this);
+    // Api Service
+    AppState &appState = AppState::getInstance();
+    m_apiService = appState.getApiService();
     connect(m_apiService, &ApiService::loginSuccess, this, &LoginScreen::onApiLoginSuccess);
     connect(m_apiService, &ApiService::loginError, this, &LoginScreen::onApiLoginError);
+
+    m_tcpClient = appState.getTcpClient();
+    connect(m_tcpClient, &TcpClient::connected, this, &LoginScreen::onTcpConnectSuccess);
+    connect(m_tcpClient, &TcpClient::connectionError, this, &LoginScreen::onTcpConnectFailed);
+
+    layout->addStretch();
 }
 
 bool LoginScreen::validateInput()
@@ -133,20 +135,7 @@ void LoginScreen::onLoginButtonClicked()
     appState.setUsername(username);
 
     // Create TCP client and connect to server
-    if (!m_tcpClient)
-    {
-        auto tcpClient = appState.getTcpClient();
-        if (!tcpClient) {
-            m_tcpClient = new TcpClient(this);
-
-            appState.setTcpClient(m_tcpClient);
-        } else {
-            m_tcpClient = tcpClient;
-        }
-        connect(m_tcpClient, &TcpClient::connected, this, &LoginScreen::onTcpConnectSuccess);
-        connect(m_tcpClient, &TcpClient::connectionError, this, &LoginScreen::onTcpConnectFailed);
-    }
-
+    m_loginRequested = true;
     m_tcpClient->connectToHost(serverAddress, serverPort);
 }
 
@@ -156,20 +145,22 @@ void LoginScreen::onTcpConnectFailed(const QString &errorMessage) {
 
 void LoginScreen::onTcpConnectSuccess()
 {
-    AppState &appState = AppState::getInstance();
-    QString username = appState.getUsername();
+    if (m_loginRequested) {
+        AppState &appState = AppState::getInstance();
+        QString username = appState.getUsername();
 
-    // after connection, send login request
-    m_apiService->setTcpClient(m_tcpClient);
-    m_errorLabel->setText("Logging in...");
-    m_apiService->loginAsync(username);
+        // after connection, send login request
+        m_errorLabel->setText("Logging in...");
+        m_apiService->loginAsync(username);
+        m_loginRequested = false;
+    }
 }
 
 void LoginScreen::onApiLoginSuccess(const QString &sessionId)
 {
     AppState &appState = AppState::getInstance();
     appState.setSessionId(sessionId);
-    m_errorLabel->setText("Loggin success!");
+    m_errorLabel->clear();
 
     qDebug() << "Login successful! Session ID:" << sessionId;
     navigate(ScreenNavigator::MainScreen);
@@ -178,4 +169,9 @@ void LoginScreen::onApiLoginSuccess(const QString &sessionId)
 void LoginScreen::onApiLoginError(const QString &errorMessage)
 {
     m_errorLabel->setText("Login failed: " + errorMessage);
+}
+
+void LoginScreen::onOpen(ScreenNavigator::ScreenType screen)
+{
+    // TODO: Submit word to server
 }
