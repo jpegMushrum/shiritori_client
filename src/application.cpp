@@ -9,11 +9,12 @@
 #include "services/connectionstatuswidget.h"
 #include "utils/constants.h"
 #include "utils/screennavigator.h"
+#include "utils/appstate.h"
 #include <QWidget>
 #include <QVBoxLayout>
 
 Application::Application(QWidget *parent)
-    : QMainWindow(parent), m_tcpClient(std::make_unique<TcpClient>(this))
+    : QMainWindow(parent)
 {
     setupUI();
     connectSignals();
@@ -30,9 +31,16 @@ void Application::setupUI()
     auto *mainLayout = new QVBoxLayout(centralWidget);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
-
     m_stackedWidget = new QStackedWidget(this);
     mainLayout->addWidget(m_stackedWidget);
+
+    qDebug() << "d1|";
+
+    // Initializing App state and Tcp Client
+    AppState &appState = AppState::getInstance();
+    appState.setTcpClient(new TcpClient(this));
+
+    qDebug() << "d2|";
 
     m_navigator = new ScreenNavigator(m_stackedWidget, this);
 
@@ -58,7 +66,6 @@ void Application::setupUI()
 
     // Create connection status widget and add it to bottom-right
     m_connectionStatusWidget = new ConnectionStatusWidget(this);
-    m_connectionStatusWidget->setTcpClient(m_tcpClient.get());
 
     // Create a container for the status widget in bottom-right
     auto *statusContainer = new QWidget(this);

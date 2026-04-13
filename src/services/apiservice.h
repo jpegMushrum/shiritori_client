@@ -22,17 +22,12 @@ public:
     explicit ApiService(QObject *parent = nullptr);
     ~ApiService() override;
 
-    // Set the main TCP client for API commands
     void setTcpClient(TcpClient *tcpClient);
 
     // ==================== Authentication ====================
 
-    /// Login user. Returns session ID.
-    /// On success: returns session ID and emits loginSuccess signal
-    /// On error: returns empty string and emits loginError signal
     void loginAsync(const QString &username);
 
-    /// Logout user
     void logoutAsync(const QString &sessionId);
 
     QString getLastError() const;
@@ -95,7 +90,6 @@ private:
     bool isBooleanSuccess(const QString &response);
 
     TcpClient *m_tcpClient = nullptr;
-    std::unique_ptr<QTcpSocket> m_gameSocket;
     QString m_lastError;
 };
 

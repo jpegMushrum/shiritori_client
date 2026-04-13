@@ -20,6 +20,9 @@ private slots:
     void onLoginButtonClicked();
     void onApiLoginSuccess(const QString &sessionId);
     void onApiLoginError(const QString &errorMessage);
+    void onTcpConnectFailed(const QString &errorMessage);
+    void onTcpConnectSuccess();
+
 
 private:
     void setupUI();

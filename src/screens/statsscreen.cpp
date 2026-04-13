@@ -59,7 +59,7 @@ void StatsScreen::loadUserStats()
 {
     AppState &appState = AppState::getInstance();
     if (!appState.isLoggedIn()) {
-        qDebug() << "Not logged in";
+        // qDebug() << "Not logged in";
         m_errorLabel->setText("Not logged in");
         return;
     }

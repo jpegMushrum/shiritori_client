@@ -19,7 +19,7 @@ TcpClient::~TcpClient()
     }
 }
 
-bool TcpClient::connectToHost(const QString &host, int port)
+void TcpClient::connectToHost(const QString &host, int port)
 {
     if (isConnected())
     {
@@ -29,15 +29,14 @@ bool TcpClient::connectToHost(const QString &host, int port)
     m_host = host;
     m_port = port;
     m_socket->connectToHost(host, port);
-    return m_socket->waitForConnected(3000);
 }
 
 void TcpClient::disconnect()
 {
     if (isConnected())
     {
+        qDebug() << "TcpClient disconnect";
         m_socket->disconnectFromHost();
-        m_socket->waitForDisconnected(3000);
     }
 }
 

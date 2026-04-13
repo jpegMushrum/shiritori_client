@@ -15,7 +15,7 @@ public:
     explicit TcpClient(QObject *parent = nullptr);
     ~TcpClient() override;
 
-    bool connectToHost(const QString &host, int port);
+    void connectToHost(const QString &host, int port);
     void disconnect();
     bool isConnected() const;
 

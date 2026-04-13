@@ -10,6 +10,15 @@
 ConnectionStatusWidget::ConnectionStatusWidget(QWidget *parent)
     : QWidget(parent)
 {
+    AppState& appState = AppState::getInstance();
+    m_tcpClient = appState.getTcpClient();
+    if (m_tcpClient) {
+        connect(m_tcpClient, &TcpClient::connected, this, &ConnectionStatusWidget::onConnected);
+        connect(m_tcpClient, &TcpClient::disconnected, this, &ConnectionStatusWidget::onDisconnected);
+        connect(m_tcpClient, &TcpClient::connectionError, this, &ConnectionStatusWidget::onConnectionError);
+        qDebug() << "Status Widget TcpClient connected " << m_tcpClient;
+    }
+
     setupUI();
 }
 
@@ -66,13 +75,19 @@ QIcon ConnectionStatusWidget::recolorIcon(const QString &path, const QColor &col
 
 void ConnectionStatusWidget::setTcpClient(TcpClient *tcpClient)
 {
+    if (m_tcpClient) {
+        disconnect(m_tcpClient, &TcpClient::connected, this, &ConnectionStatusWidget::onConnected);
+        disconnect(m_tcpClient, &TcpClient::disconnected, this, &ConnectionStatusWidget::onDisconnected);
+        disconnect(m_tcpClient, &TcpClient::connectionError, this, &ConnectionStatusWidget::onConnectionError);
+    }
+
     m_tcpClient = tcpClient;
     if (m_tcpClient)
     {
         connect(m_tcpClient, &TcpClient::connected, this, &ConnectionStatusWidget::onConnected);
         connect(m_tcpClient, &TcpClient::disconnected, this, &ConnectionStatusWidget::onDisconnected);
         connect(m_tcpClient, &TcpClient::connectionError, this, &ConnectionStatusWidget::onConnectionError);
-        qDebug() << "TcpClient connectd";
+        qDebug() << "Status Widget TcpClient connected " << m_tcpClient;
     }
     updateStatus();
 }

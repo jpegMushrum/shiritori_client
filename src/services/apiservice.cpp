@@ -11,15 +11,19 @@ ApiService::ApiService(QObject *parent)
 
 ApiService::~ApiService()
 {
-    if (m_gameSocket) {
-        m_gameSocket->disconnectFromHost();
-    }
 }
 
 void ApiService::setTcpClient(TcpClient *tcpClient)
 {
+    if (m_tcpClient) {
+        disconnect(m_tcpClient, &TcpClient::dataReceived, this, &ApiService::onGetResponse);
+    }
+
     m_tcpClient = tcpClient;
-    connect(tcpClient, &TcpClient::dataReceived, this, &ApiService::onGetResponse);
+    if (m_tcpClient) {
+        connect(m_tcpClient, &TcpClient::dataReceived, this, &ApiService::onGetResponse);
+        qDebug() << "Api Service Set TcpClient " << m_tcpClient;
+    }
 }
 
 // ==================== Authentication ====================
@@ -30,7 +34,9 @@ void ApiService::loginAsync(const QString &username)
         m_lastError = "TCP client not set";
     }
 
-    QString command = QString("login %1").arg(username);
+    int requestId = m_nextRequestId++;
+    QString command = QString("%1 login %2").arg(requestId).arg(username);
+    m_pendingRequests[requestId] = [this](QString response){ loginResponse(response); };
     sendCommand(command);
 
     qDebug() << "Login command: " << command;
@@ -42,6 +48,10 @@ void ApiService::logoutAsync(const QString &sessionId)
         m_lastError = "TCP client not set";
     }
 
+    // int requestId = m_nextRequestId++;
+    // QString command = QString("%1 login %2").arg(requestId).arg(sessionId);
+    // m_pendingRequests[requestId] = [this](QString response){ logoutResponse(response); };
+    // sendCommand(command);
     QString command = QString("logout %1").arg(sessionId);
     sendCommand(command);
 
@@ -107,6 +117,6 @@ void ApiService::onGetResponse(QString response) {
         return;
     }
 
-    std::function<void(QString)> action = m_pendingRequests[id];
-    action(response.slice(idString.size()).trimmed());
+    std::function<void(QString)> process = m_pendingRequests[id];
+    process(response.slice(idString.size()).trimmed());
 }

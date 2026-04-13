@@ -73,7 +73,7 @@ void SearchGameScreen::loadGames()
 {
     AppState &appState = AppState::getInstance();
     if (!appState.isLoggedIn()) {
-        qDebug() << "Not logged in";
+        // qDebug() << "Not logged in";
         return;
     }
 

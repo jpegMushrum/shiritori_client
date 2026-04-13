@@ -133,18 +133,31 @@ void LoginScreen::onLoginButtonClicked()
     appState.setUsername(username);
 
     // Create TCP client and connect to server
-    if (!m_tcpClient) {
-        m_tcpClient = new TcpClient(this);
-    }
-
-    if (!m_tcpClient->connectToHost(serverAddress, serverPort))
+    if (!m_tcpClient)
     {
-        onApiLoginError("Failed to connect to server");
-        return;
+        auto tcpClient = appState.getTcpClient();
+        if (!tcpClient) {
+            m_tcpClient = new TcpClient(this);
+
+            appState.setTcpClient(m_tcpClient);
+        } else {
+            m_tcpClient = tcpClient;
+        }
+        connect(m_tcpClient, &TcpClient::connected, this, &LoginScreen::onTcpConnectSuccess);
+        connect(m_tcpClient, &TcpClient::connectionError, this, &LoginScreen::onTcpConnectFailed);
     }
 
-    // Save TCP client to AppState for later use
-    appState.setTcpClient(m_tcpClient);
+    m_tcpClient->connectToHost(serverAddress, serverPort);
+}
+
+void LoginScreen::onTcpConnectFailed(const QString &errorMessage) {
+    onApiLoginError(QString("Failed to connect to server.\nTcp error: %1").arg(errorMessage));
+}
+
+void LoginScreen::onTcpConnectSuccess()
+{
+    AppState &appState = AppState::getInstance();
+    QString username = appState.getUsername();
 
     // after connection, send login request
     m_apiService->setTcpClient(m_tcpClient);
@@ -156,6 +169,7 @@ void LoginScreen::onApiLoginSuccess(const QString &sessionId)
 {
     AppState &appState = AppState::getInstance();
     appState.setSessionId(sessionId);
+    m_errorLabel->setText("Loggin success!");
 
     qDebug() << "Login successful! Session ID:" << sessionId;
     navigate(ScreenNavigator::MainScreen);
