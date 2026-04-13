@@ -30,6 +30,8 @@ public:
 
     void logoutAsync(const QString &sessionId);
 
+    void getUserInfoAsync(const QString &sessionId);
+
     QString getLastError() const;
     void clearLastError();
 
@@ -81,8 +83,8 @@ private:
     QHash<int, std::function<void(QString)>> m_pendingRequests;
     int m_nextRequestId = 1;
 
-    void loginResponse(QString response);
-    void logoutResponse(QString response);
+    void loginResponse(const QString& response);
+    void getUserInfoResponse(const QString& response);
 
     // Parse boolean responses like "Logged out successfully"
     bool isBooleanSuccess(const QString &response);

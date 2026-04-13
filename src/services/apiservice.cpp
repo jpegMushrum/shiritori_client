@@ -32,6 +32,8 @@ void ApiService::loginAsync(const QString &username)
 {
     if (!m_tcpClient) {
         m_lastError = "TCP client not set";
+        emit loginError(m_lastError);
+        return;
     }
 
     int requestId = m_nextRequestId++;
@@ -46,6 +48,7 @@ void ApiService::logoutAsync(const QString &sessionId)
 {
     if (!m_tcpClient) {
         m_lastError = "TCP client not set";
+        return;
     }
 
     int requestId = m_nextRequestId++;
@@ -57,6 +60,22 @@ void ApiService::logoutAsync(const QString &sessionId)
     qDebug() << "Logout command: " << command;
 }
 
+
+void ApiService::getUserInfoAsync(const QString &sessionId) {
+    if (!m_tcpClient) {
+        m_lastError = "TCP client not set";
+        emit userInfoError(m_lastError);
+        return;
+    }
+
+    int requestId = m_nextRequestId++;
+    QString command = QString("%1 getUserInfo %2").arg(requestId).arg(sessionId);
+    m_pendingRequests[requestId] = [this](QString response){ getUserInfoResponse(response); };
+
+    sendCommand(command);
+
+    qDebug() << "GetUserInfo command: " << command;
+}
 // ==================== Error Handling ====================
 
 QString ApiService::getLastError() const
@@ -89,7 +108,7 @@ bool ApiService::isBooleanSuccess(const QString &response)
            response == "Player added successfully";
 }
 
-void ApiService::loginResponse(QString response) {
+void ApiService::loginResponse(const QString& response) {
     if (ServerProtocolParser::isError(response)) {
         m_lastError = response;
         emit loginError(response);
@@ -98,6 +117,22 @@ void ApiService::loginResponse(QString response) {
 
     QString sessionId = response.trimmed();
     emit loginSuccess(sessionId);
+}
+
+void ApiService::getUserInfoResponse(const QString& response) {
+    if (ServerProtocolParser::isError(response)) {
+        m_lastError = response;
+        emit userInfoError(response);
+        return;
+    }
+
+    std::optional<UserInfo> user = ServerProtocolParser::parseUserInfo(response);
+    if (!user.has_value()) {
+        emit userInfoError(response);
+        return;
+    }
+
+    emit userInfoReceived(*user);
 }
 
 // ==================== Slots ====================

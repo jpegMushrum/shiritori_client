@@ -47,7 +47,8 @@ void StatsScreen::setupUI()
     mainLayout->addStretch();
 
     // Setup API service
-    m_apiService = new ApiService(this);
+    AppState& appState = AppState::getInstance();
+    m_apiService = appState.getApiService();
     connect(m_apiService, &ApiService::userInfoReceived, this, &StatsScreen::onUserInfoReceived);
     connect(m_apiService, &ApiService::userInfoError, this, &StatsScreen::onUserInfoError);
 }
@@ -68,7 +69,7 @@ void StatsScreen::loadUserStats()
     }
 
     m_errorLabel->clear();
-    // m_apiService->getUserInfoAsync(appState.getSessionId());
+    m_apiService->getUserInfoAsync(appState.getSessionId());
 }
 
 void StatsScreen::displayUserStats(const UserInfo &info)
