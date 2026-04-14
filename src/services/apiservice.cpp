@@ -1,5 +1,6 @@
 #include "apiservice.h"
 #include "tcpclient.h"
+#include "../utils/appstate.h"
 
 #include <QTcpSocket>
 #include <QDebug>
@@ -34,6 +35,12 @@ void ApiService::loginAsync(const QString &username)
         m_lastError = "TCP client not set";
         emit loginError(m_lastError);
         return;
+    }
+
+    AppState& appState = AppState::getInstance();
+    if (appState.isLoggedIn()) {
+        logoutAsync(appState.getSessionId());
+        appState.logout();
     }
 
     int requestId = m_nextRequestId++;
@@ -116,6 +123,9 @@ void ApiService::loginResponse(const QString& response) {
     }
 
     QString sessionId = response.trimmed();
+    AppState& appState = AppState::getInstance();
+    appState.setSessionId(sessionId);
+
     emit loginSuccess(sessionId);
 }
 

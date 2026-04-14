@@ -145,25 +145,23 @@ void LoginScreen::onTcpConnectFailed(const QString &errorMessage) {
 
 void LoginScreen::onTcpConnectSuccess()
 {
-    if (m_loginRequested) {
-        AppState &appState = AppState::getInstance();
-        QString username = appState.getUsername();
+    AppState &appState = AppState::getInstance();
+    QString username = appState.getUsername();
 
-        // after connection, send login request
-        m_errorLabel->setText("Logging in...");
-        m_apiService->loginAsync(username);
-        m_loginRequested = false;
-    }
+    // after connection, send login request
+    m_errorLabel->setText("Logging in...");
+    m_apiService->loginAsync(username);
 }
 
 void LoginScreen::onApiLoginSuccess(const QString &sessionId)
 {
-    AppState &appState = AppState::getInstance();
-    appState.setSessionId(sessionId);
-    m_errorLabel->clear();
+    if (m_loginRequested){
+        m_errorLabel->clear();
 
-    qDebug() << "Login successful! Session ID:" << sessionId;
-    navigate(ScreenNavigator::MainScreen);
+        qDebug() << "Login successful! Session ID:" << sessionId;
+        navigate(ScreenNavigator::MainScreen);
+        m_loginRequested = false;
+    }
 }
 
 void LoginScreen::onApiLoginError(const QString &errorMessage)

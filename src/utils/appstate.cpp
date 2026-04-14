@@ -85,5 +85,4 @@ void AppState::logout()
 {
     m_currentUser = User();
     m_sessionId.clear();
-    m_username.clear();
 }
