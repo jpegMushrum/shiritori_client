@@ -6,6 +6,8 @@
 #include <QLineEdit>
 #include <QListWidget>
 
+#include "../utils/appstate.h"
+
 GameScreen::GameScreen(QWidget *parent)
     : BaseScreen(parent)
 {
@@ -55,6 +57,22 @@ void GameScreen::setupUI()
     exitButton->setMinimumHeight(40);
     connect(exitButton, &QPushButton::clicked, this, &GameScreen::onExitButtonClicked);
     mainLayout->addWidget(exitButton);
+
+    // Setting up api
+    AppState &appState = AppState::getInstance();
+    m_apiService = appState.getApiService();
+
+    connectSignals();
+}
+
+void GameScreen::connectSignals()
+{
+    if (m_apiService)
+    {
+        connect(m_apiService, &ApiService::newWordReceived, this, &GameScreen::onNewWordReceived);
+        connect(m_apiService, &ApiService::subscribeError, this, &GameScreen::onSubscribeError);
+        connect(m_apiService, &ApiService::subscribeSuccess, this, &GameScreen::onSubscribeSuccess);
+    }
 }
 
 void GameScreen::onSubmitButtonClicked()
@@ -62,11 +80,41 @@ void GameScreen::onSubmitButtonClicked()
     // TODO: Submit word to server
 }
 
-void GameScreen::onOpen(ScreenNavigator::ScreenType screen)
+void GameScreen::onNewWordReceived(const NewWordUpdate &update)
 {
-    // TODO: Submit word to server
+    qDebug() << "GameScreen: New word received -" << update.kanji;
+    // TODO: Update UI with new word information
 }
 
+void GameScreen::onSubscribeSuccess()
+{
+    qDebug() << "Successfully subscribed to game updates";
+    // TODO: Update UI to show game is active
+}
+
+void GameScreen::onSubscribeError(const QString &error)
+{
+    qWarning() << "Failed to subscribe to game:" << error;
+    // TODO: Show error message to user
+}
+
+void GameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data)
+{
+    if (data.empty())
+    {
+        return;
+    }
+
+    qDebug() << "GameScreen Opened" << data;
+    if (screen == ScreenNavigator::GameScreen)
+    {
+        m_gameId = data["gameId"].toULongLong();
+        if (m_apiService)
+        {
+            m_apiService->subscribeOnGameAsync(m_gameId);
+        }
+    }
+}
 
 void GameScreen::onExitButtonClicked()
 {

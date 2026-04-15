@@ -2,11 +2,10 @@
 #define CONNECTIONSTATUSWIDGET_H
 
 #include <QWidget>
-#include <memory>
+#include <QLabel>
+#include <QPushButton>
 
-class QLabel;
-class QPushButton;
-class TcpClient;
+#include "apiservice.h"
 
 class ConnectionStatusWidget : public QWidget
 {
@@ -32,7 +31,7 @@ private:
     QLabel *m_statusLabel = nullptr;
     QPushButton *m_reconnectButton = nullptr;
     TcpClient *m_tcpClient = nullptr;
-
+    ApiService *m_apiService = nullptr;
 };
 
 #endif // CONNECTIONSTATUSWIDGET_H

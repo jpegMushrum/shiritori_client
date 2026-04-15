@@ -32,6 +32,11 @@ public:
 
     void getUserInfoAsync(const QString &sessionId);
 
+    void getActiveGamesAsync();
+
+    // Game subscription
+    void subscribeOnGameAsync(qulonglong gameId);
+
     QString getLastError() const;
     void clearLastError();
 
@@ -69,6 +74,10 @@ signals:
     void newWordReceived(const NewWordUpdate &update);
     void gameUpdateReceived(const QString &update);
 
+    // Subscription signals
+    void subscribeSuccess();
+    void subscribeError(const QString &error);
+
     // History signals
     void gameHistoryReceived(const QList<GameHistoryEntry> &history);
     void gameHistoryError(const QString &error);
@@ -83,14 +92,18 @@ private:
     QHash<int, std::function<void(QString)>> m_pendingRequests;
     int m_nextRequestId = 1;
 
-    void loginResponse(const QString& response);
-    void getUserInfoResponse(const QString& response);
+    void loginResponse(const QString &response);
+    void getUserInfoResponse(const QString &response);
+    void getActiveGamesResponse(const QString &response);
+    void subscribeResponse(const QString &response, int requestId);
+    void newWordResponse(const QString &response, int requestId);
 
     // Parse boolean responses like "Logged out successfully"
     bool isBooleanSuccess(const QString &response);
 
     TcpClient *m_tcpClient = nullptr;
     QString m_lastError;
+    QString m_sessionId; // Store session ID for subscriptions
 };
 
 #endif // APISERVICE_H

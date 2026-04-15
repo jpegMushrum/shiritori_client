@@ -53,7 +53,7 @@ void StatsScreen::setupUI()
     connect(m_apiService, &ApiService::userInfoError, this, &StatsScreen::onUserInfoError);
 }
 
-void StatsScreen::onOpen(ScreenNavigator::ScreenType screen) {
+void StatsScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data) {
     if (screen == ScreenNavigator::StatsScreen) {
         loadUserStats();
     }

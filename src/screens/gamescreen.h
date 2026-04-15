@@ -2,6 +2,7 @@
 #define GAMESCREEN_H
 
 #include "basescreen.h"
+#include "../services/apiservice.h"
 
 class GameScreen : public BaseScreen
 {
@@ -13,10 +14,17 @@ public:
 private slots:
     void onSubmitButtonClicked();
     void onExitButtonClicked();
-    void onOpen(ScreenNavigator::ScreenType screen) override;
+    void onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data = {}) override;
+    void onNewWordReceived(const NewWordUpdate &update);
+    void onSubscribeError(const QString &error);
+    void onSubscribeSuccess();
 
 private:
     void setupUI();
+    void connectSignals();
+
+    ApiService *m_apiService = nullptr;
+    qulonglong m_gameId = -1;
 
     // TODO: Add UI components
     // - Used words list

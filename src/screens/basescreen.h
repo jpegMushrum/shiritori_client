@@ -25,7 +25,7 @@ signals:
 
 
 protected slots:
-    virtual void onOpen(ScreenNavigator::ScreenType screen) = 0;
+    virtual void onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data = {}) = 0;
 
 protected:
     ScreenNavigator *navigator() const;

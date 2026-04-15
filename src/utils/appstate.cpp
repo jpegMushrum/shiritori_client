@@ -58,14 +58,14 @@ void AppState::setUsername(const QString &username)
     m_username = username;
 }
 
-TcpClient* AppState::getTcpClient() const
+TcpClient *AppState::getApiTcpClient() const
 {
-    return m_tcpClient;
+    return m_apiTcpClient;
 }
 
-void AppState::setTcpClient(TcpClient *tcpClient)
+void AppState::setApiTcpClient(TcpClient *tcpClient)
 {
-    m_tcpClient = tcpClient;
+    m_apiTcpClient = tcpClient;
 }
 
 bool AppState::isLoggedIn() const
@@ -73,11 +73,13 @@ bool AppState::isLoggedIn() const
     return !m_sessionId.isEmpty();
 }
 
-ApiService* AppState::getApiService() const {
+ApiService *AppState::getApiService() const
+{
     return m_apiService;
 }
 
-void AppState::setApiService(ApiService *apiService) {
+void AppState::setApiService(ApiService *apiService)
+{
     m_apiService = apiService;
 }
 

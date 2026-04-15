@@ -61,10 +61,10 @@ void MainScreen::setupUI()
 }
 
 
-void MainScreen::onOpen(ScreenNavigator::ScreenType screen)
+void MainScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data)
 {
     if (screen == ScreenNavigator::MainScreen) {
-        // Something
+        // Smth
     }
 }
 
@@ -80,11 +80,6 @@ void MainScreen::startNewGame()
         qDebug() << "Not logged in";
         navigate(ScreenNavigator::LoginScreen);
         return;
-    }
-
-    // Ensure API service has the TCP client
-    if (appState.getTcpClient()) {
-        m_apiService->setTcpClient(appState.getTcpClient());
     }
 
     qDebug() << "Starting new game...";

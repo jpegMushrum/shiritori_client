@@ -8,7 +8,7 @@ BaseScreen::BaseScreen(QWidget *parent)
 void BaseScreen::setNavigator(ScreenNavigator *navigator)
 {
     m_navigator = navigator;
-    connect(m_navigator, &ScreenNavigator::screenChanged, this, &BaseScreen::onOpen);
+    connect(m_navigator, &ScreenNavigator::navigationRequested, this, &BaseScreen::onOpen);
 }
 
 ScreenNavigator *BaseScreen::navigator() const

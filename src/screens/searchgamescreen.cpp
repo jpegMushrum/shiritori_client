@@ -28,20 +28,6 @@ void SearchGameScreen::setupUI()
 
     mainLayout->addSpacing(15);
 
-    auto *searchLayout = new QHBoxLayout();
-    m_searchInput = new QLineEdit(this);
-    m_searchInput->setPlaceholderText("Search by game name...");
-    searchLayout->addWidget(m_searchInput);
-
-    auto *refreshButton = new QPushButton("Refresh", this);
-    refreshButton->setMaximumWidth(100);
-    connect(refreshButton, &QPushButton::clicked, this, &SearchGameScreen::onRefreshButtonClicked);
-    searchLayout->addWidget(refreshButton);
-
-    mainLayout->addLayout(searchLayout);
-
-    mainLayout->addSpacing(15);
-
     m_gamesList = new QListWidget(this);
     mainLayout->addWidget(m_gamesList);
 
@@ -61,36 +47,31 @@ void SearchGameScreen::setupUI()
     mainLayout->addLayout(buttonLayout);
 
     // Setup API service
-    m_apiService = new ApiService(this);
+    AppState& appState = AppState::getInstance();
+    m_apiService = appState.getApiService();
     connect(m_apiService, &ApiService::activeGamesReceived, this, &SearchGameScreen::onActiveGamesReceived);
     connect(m_apiService, &ApiService::activeGamesError, this, &SearchGameScreen::onActiveGamesError);
 
     // Load games on creation
-    loadGames();
 }
 
-void SearchGameScreen::onOpen(ScreenNavigator::ScreenType screen)
+void SearchGameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data)
 {
-    // TODO: Submit word to server
+    if (screen == ScreenNavigator::SearchGameScreen) {
+        m_apiService->getActiveGamesAsync();
+    }
 }
 
 void SearchGameScreen::loadGames()
 {
     AppState &appState = AppState::getInstance();
     if (!appState.isLoggedIn()) {
-        // qDebug() << "Not logged in";
+        qDebug() << "Not logged in";
         return;
-    }
-
-    // Ensure API service has the TCP client
-    if (appState.getTcpClient()) {
-        m_apiService->setTcpClient(appState.getTcpClient());
     }
 
     m_gamesList->clear();
     m_gamesList->addItem("Loading games...");
-
-    // m_apiService->getActiveGamesAsync();
 }
 
 void SearchGameScreen::displayGames(const QList<GameContext> &games)

@@ -22,7 +22,7 @@ private slots:
     void onApiLoginError(const QString &errorMessage);
     void onTcpConnectFailed(const QString &errorMessage);
     void onTcpConnectSuccess();
-    void onOpen(ScreenNavigator::ScreenType screen) override;
+    void onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data = {}) override;
 
 
 private:

@@ -34,14 +34,14 @@ void Application::setupUI()
     m_stackedWidget = new QStackedWidget(this);
     mainLayout->addWidget(m_stackedWidget);
 
-    // Initializing App state and Tcp Client
+    // Initializing App state and Api Service
     AppState &appState = AppState::getInstance();
-    auto* tcpClient = new TcpClient(this);
-    appState.setTcpClient(tcpClient);
+    auto *apiTcpClient = new TcpClient(this);
+    appState.setApiTcpClient(apiTcpClient);
 
-    auto* apiService = new ApiService(this);
+    auto *apiService = new ApiService(this);
     appState.setApiService(apiService);
-    apiService->setTcpClient(tcpClient);
+    apiService->setTcpClient(apiTcpClient);
 
     m_navigator = new ScreenNavigator(m_stackedWidget, this);
 

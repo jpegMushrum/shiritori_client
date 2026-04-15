@@ -11,7 +11,7 @@ ConnectionStatusWidget::ConnectionStatusWidget(QWidget *parent)
     : QWidget(parent)
 {
     AppState& appState = AppState::getInstance();
-    m_tcpClient = appState.getTcpClient();
+    m_tcpClient = appState.getApiTcpClient();
     if (m_tcpClient) {
         connect(m_tcpClient, &TcpClient::connected, this, &ConnectionStatusWidget::onConnected);
         connect(m_tcpClient, &TcpClient::disconnected, this, &ConnectionStatusWidget::onDisconnected);
@@ -50,6 +50,9 @@ void ConnectionStatusWidget::setupUI()
             background-color: #f0f0f0;
         }
     )");
+
+    AppState &appState = AppState::getInstance();
+    m_apiService = appState.getApiService();
 
     setFixedSize(140, 70);
 }
@@ -110,7 +113,14 @@ void ConnectionStatusWidget::onReconnectClicked()
     }
 
     AppState &appState = AppState::getInstance();
+
     m_tcpClient->connectToHost(appState.getServerAddress(), appState.getServerPort());
+
+    if (appState.isLoggedIn()) {
+        m_apiService->logoutAsync(appState.getSessionId());
+        appState.logout();
+    }
+    m_apiService->loginAsync(appState.getUsername());
 }
 
 void ConnectionStatusWidget::onConnectionError(const QString &errorMessage)

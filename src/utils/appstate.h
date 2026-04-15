@@ -24,10 +24,10 @@ public:
     QString getUsername() const;
     void setUsername(const QString &username);
 
-    TcpClient* getTcpClient() const;
-    void setTcpClient(TcpClient *tcpClient);
+    TcpClient *getApiTcpClient() const;
+    void setApiTcpClient(TcpClient *tcpClient);
 
-    ApiService* getApiService() const;
+    ApiService *getApiService() const;
     void setApiService(ApiService *apiService);
 
     bool isLoggedIn() const;
@@ -40,7 +40,8 @@ private:
     int m_serverPort = 5000;
     QString m_sessionId;
     QString m_username;
-    TcpClient *m_tcpClient = nullptr;
+    TcpClient *m_apiTcpClient = nullptr;
+
     ApiService *m_apiService = nullptr;
 };
 
