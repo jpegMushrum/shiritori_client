@@ -18,6 +18,8 @@ private slots:
     void onNewWordReceived(const NewWordUpdate &update);
     void onSubscribeError(const QString &error);
     void onSubscribeSuccess();
+    void onWordHandled(HandleWordStatus status);
+    void onWordHandleError(const QString &error);
 
 private:
     void setupUI();
@@ -25,6 +27,12 @@ private:
 
     ApiService *m_apiService = nullptr;
     qulonglong m_gameId = -1;
+    QString m_sessionId;
+
+    // UI components
+    class QLineEdit *m_wordInput = nullptr;
+    class QListWidget *m_wordsList = nullptr;
+    class QLabel *m_lastKanaLabel = nullptr;
 
     // TODO: Add UI components
     // - Used words list

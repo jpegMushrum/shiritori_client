@@ -37,6 +37,9 @@ public:
     // Game subscription
     void subscribeOnGameAsync(qulonglong gameId);
 
+    // Game actions
+    void handleWordAsync(qulonglong gameId, const QString &sessionId, const QString &word);
+
     QString getLastError() const;
     void clearLastError();
 
@@ -97,6 +100,7 @@ private:
     void getActiveGamesResponse(const QString &response);
     void subscribeResponse(const QString &response, int requestId);
     void newWordResponse(const QString &response, int requestId);
+    void handleWordResponse(const QString &response);
 
     // Parse boolean responses like "Logged out successfully"
     bool isBooleanSuccess(const QString &response);

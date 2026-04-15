@@ -131,6 +131,41 @@ void ApiService::subscribeOnGameAsync(qulonglong gameId)
     qDebug() << "Subscribe command:" << command;
 }
 
+// ==================== Game Actions ====================
+
+void ApiService::handleWordAsync(qulonglong gameId, const QString &sessionId, const QString &word)
+{
+    if (!m_tcpClient)
+    {
+        m_lastError = "TCP client not set";
+        emit wordHandleError(m_lastError);
+        return;
+    }
+
+    if (sessionId.isEmpty())
+    {
+        m_lastError = "Session ID not set";
+        emit wordHandleError(m_lastError);
+        return;
+    }
+
+    if (word.isEmpty())
+    {
+        m_lastError = "Word cannot be empty";
+        emit wordHandleError(m_lastError);
+        return;
+    }
+
+    int requestId = m_nextRequestId++;
+    QString command = QString("%1 handleWord %2 %3 %4").arg(requestId).arg(gameId).arg(sessionId).arg(word);
+    m_pendingRequests[requestId] = [this](QString response)
+    { handleWordResponse(response); };
+
+    sendCommand(command);
+
+    qDebug() << "Handle word command:" << command;
+}
+
 // ==================== Error Handling ====================
 
 QString ApiService::getLastError() const
@@ -258,6 +293,23 @@ void ApiService::newWordResponse(const QString &response, int requestId)
     { newWordResponse(wordResponse, requestId); };
 }
 
+void ApiService::handleWordResponse(const QString &response)
+{
+    qDebug() << "Handle word response:" << response;
+
+    HandleWordStatus status = ServerProtocolParser::parseHandleWordStatus(response);
+
+    if (ServerProtocolParser::isError(response))
+    {
+        m_lastError = response;
+        emit wordHandleError(response);
+    }
+    else
+    {
+        emit wordHandled(status);
+    }
+}
+
 // ==================== Slots ====================
 
 void ApiService::onGetResponse(QString response)
@@ -268,26 +320,36 @@ void ApiService::onGetResponse(QString response)
         return;
     }
 
-    bool ok = false;
-    QString idString = response.split(' ')[0];
-    int id = idString.toInt(&ok, 10);
+    // Split responses by newline in case multiple responses arrived together
+    QStringList responses = response.split('\n', Qt::SkipEmptyParts);
 
-    if (!ok)
+    for (const QString &singleResponse : responses)
     {
-        qDebug() << "Got incorrect response id";
-        return;
-    }
+        QString trimmedResponse = singleResponse.trimmed();
+        if (trimmedResponse.isEmpty())
+            continue;
 
-    auto process_it = m_pendingRequests.find(id);
-    if (process_it != m_pendingRequests.end())
-    {
-        auto process = (*process_it);
-        m_pendingRequests.erase(process_it);
+        bool ok = false;
+        QString idString = trimmedResponse.split(' ')[0];
+        int id = idString.toInt(&ok, 10);
 
-        process(response.slice(idString.size()).trimmed());
-    }
-    else
-    {
-        qDebug() << "Ignoring response" << response;
+        if (!ok)
+        {
+            qDebug() << "Got incorrect response id:" << trimmedResponse;
+            continue;
+        }
+
+        auto process_it = m_pendingRequests.find(id);
+        if (process_it != m_pendingRequests.end())
+        {
+            auto process = (*process_it);
+            m_pendingRequests.erase(process_it);
+
+            process(trimmedResponse.slice(idString.size()).trimmed());
+        }
+        else
+        {
+            qDebug() << "Ignoring response" << trimmedResponse;
+        }
     }
 }
