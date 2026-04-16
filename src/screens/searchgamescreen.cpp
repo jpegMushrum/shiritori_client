@@ -4,8 +4,9 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QLineEdit>
-#include <QListWidget>
-#include <QListWidgetItem>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+#include <QHeaderView>
 #include <QDebug>
 #include "../services/serverprotocol.h"
 #include "../services/apiservice.h"
@@ -28,8 +29,19 @@ void SearchGameScreen::setupUI()
 
     mainLayout->addSpacing(15);
 
-    m_gamesList = new QListWidget(this);
-    mainLayout->addWidget(m_gamesList);
+    // Create table with sortable columns
+    m_gamesTable = new QTableWidget(this);
+    m_gamesTable->setColumnCount(4);
+    m_gamesTable->setHorizontalHeaderLabels({"Game ID", "Players", "Words", "Last Kana"});
+    m_gamesTable->horizontalHeader()->setStretchLastSection(true);
+    m_gamesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_gamesTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_gamesTable->setColumnWidth(0, 100);
+    m_gamesTable->setColumnWidth(1, 100);
+    m_gamesTable->setColumnWidth(2, 100);
+    m_gamesTable->setSortingEnabled(true);
+    connect(m_gamesTable, &QTableWidget::cellClicked, this, &SearchGameScreen::onTableCellClicked);
+    mainLayout->addWidget(m_gamesTable);
 
     mainLayout->addSpacing(15);
 
@@ -47,17 +59,19 @@ void SearchGameScreen::setupUI()
     mainLayout->addLayout(buttonLayout);
 
     // Setup API service
-    AppState& appState = AppState::getInstance();
+    AppState &appState = AppState::getInstance();
     m_apiService = appState.getApiService();
     connect(m_apiService, &ApiService::activeGamesReceived, this, &SearchGameScreen::onActiveGamesReceived);
     connect(m_apiService, &ApiService::activeGamesError, this, &SearchGameScreen::onActiveGamesError);
-
-    // Load games on creation
 }
 
 void SearchGameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data)
 {
-    if (screen == ScreenNavigator::SearchGameScreen) {
+    if (screen == ScreenNavigator::SearchGameScreen)
+    {
+        m_gamesTable->sortByColumn(0, Qt::AscendingOrder);
+        // setSortingEnabled(false);
+        // m_gamesTable->setSortingEnabled(true);
         m_apiService->getActiveGamesAsync();
     }
 }
@@ -65,51 +79,82 @@ void SearchGameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariant
 void SearchGameScreen::loadGames()
 {
     AppState &appState = AppState::getInstance();
-    if (!appState.isLoggedIn()) {
+    if (!appState.isLoggedIn())
+    {
         qDebug() << "Not logged in";
         return;
     }
-
-    m_gamesList->clear();
-    m_gamesList->addItem("Loading games...");
 }
 
 void SearchGameScreen::displayGames(const QList<GameContext> &games)
 {
-    m_gamesList->clear();
+    m_gamesTable->setRowCount(0);
 
-    if (games.isEmpty()) {
-        m_gamesList->addItem("No games available");
+    if (games.isEmpty())
+    {
+        m_gamesTable->insertRow(0);
+        auto *item = new QTableWidgetItem("No games available");
+        item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+        m_gamesTable->setItem(0, 0, item);
         return;
     }
 
-    m_availableGames = games;
+    int row = 0;
+    for (const auto &game : games)
+    {
+        m_gamesTable->insertRow(row);
 
-    for (const auto &game : games) {
-        QString gameInfo = QString("Game %1 - Players: %2, Words: %3, Last: %4")
-            .arg(game.gameId)
-            .arg(game.playersCount)
-            .arg(game.wordsCount)
-            .arg(game.lastKana);
+        auto *idItem = new QTableWidgetItem(QString::number(game.gameId));
+        auto *playersItem = new QTableWidgetItem(QString::number(game.playersCount));
+        auto *wordsItem = new QTableWidgetItem(QString::number(game.wordsCount));
+        auto *kanaItem = new QTableWidgetItem(game.lastKana);
 
-        auto *item = new QListWidgetItem(gameInfo, m_gamesList);
-        item->setData(Qt::UserRole, static_cast<qulonglong>(game.gameId));
-        m_gamesList->addItem(item);
+        idItem->setData(Qt::UserRole, static_cast<qulonglong>(game.gameId));
+
+        playersItem->setData(Qt::UserRole, game.playersCount);
+        wordsItem->setData(Qt::UserRole, game.wordsCount);
+
+        idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+        playersItem->setFlags(playersItem->flags() & ~Qt::ItemIsEditable);
+        wordsItem->setFlags(wordsItem->flags() & ~Qt::ItemIsEditable);
+        kanaItem->setFlags(kanaItem->flags() & ~Qt::ItemIsEditable);
+
+        m_gamesTable->setItem(row, 0, idItem);
+        m_gamesTable->setItem(row, 1, playersItem);
+        m_gamesTable->setItem(row, 2, wordsItem);
+        m_gamesTable->setItem(row, 3, kanaItem);
+
+        row++;
+    }
+}
+
+void SearchGameScreen::onTableCellClicked(int row, int column)
+{
+    Q_UNUSED(column);
+    if (row < 0 || row >= m_gamesTable->rowCount())
+        return;
+
+    auto *idItem = m_gamesTable->item(row, 0);
+    if (idItem)
+    {
+        bool ok;
+        m_selectedGameId = idItem->data(Qt::UserRole).toULongLong(&ok);
+        if (!ok)
+            m_selectedGameId = -1;
+        qDebug() << "Selected game ID:" << m_selectedGameId;
     }
 }
 
 void SearchGameScreen::onJoinGameButtonClicked()
 {
-    auto *selectedItem = m_gamesList->currentItem();
-    if (!selectedItem) {
+    if (m_selectedGameId == static_cast<qulonglong>(-1))
+    {
         qDebug() << "No game selected";
         return;
     }
 
-    qulonglong gameId = selectedItem->data(Qt::UserRole).toULongLong();
-
     QVariantMap gameData;
-    gameData["gameId"] = gameId;
+    gameData["gameId"] = m_selectedGameId;
     navigate(ScreenNavigator::GameScreen, gameData);
 }
 
@@ -132,6 +177,4 @@ void SearchGameScreen::onActiveGamesReceived(const QList<GameContext> &games)
 void SearchGameScreen::onActiveGamesError(const QString &error)
 {
     qDebug() << "Games error:" << error;
-    m_gamesList->clear();
-    m_gamesList->addItem("Error: " + error);
 }

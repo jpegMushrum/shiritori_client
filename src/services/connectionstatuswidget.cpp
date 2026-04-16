@@ -98,6 +98,19 @@ void ConnectionStatusWidget::setTcpClient(TcpClient *tcpClient)
 void ConnectionStatusWidget::onConnected()
 {
     updateStatus();
+
+    if (m_loginRequested) {
+        AppState &appState = AppState::getInstance();
+        if (appState.isLoggedIn()) {
+            qDebug() << "Reconnection logout";
+            m_apiService->logoutAsync(appState.getSessionId());
+            appState.logout();
+        }
+
+        qDebug() << "Reconnection login" << appState.getUsername();
+        m_apiService->loginAsync(appState.getUsername());
+        m_loginRequested = false;
+    }
 }
 
 void ConnectionStatusWidget::onDisconnected()
@@ -114,13 +127,8 @@ void ConnectionStatusWidget::onReconnectClicked()
 
     AppState &appState = AppState::getInstance();
 
+    m_loginRequested = true;
     m_tcpClient->connectToHost(appState.getServerAddress(), appState.getServerPort());
-
-    if (appState.isLoggedIn()) {
-        m_apiService->logoutAsync(appState.getSessionId());
-        appState.logout();
-    }
-    m_apiService->loginAsync(appState.getUsername());
 }
 
 void ConnectionStatusWidget::onConnectionError(const QString &errorMessage)

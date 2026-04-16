@@ -28,6 +28,7 @@ private:
     void setupUI();
     void updateStatus();
 
+    bool m_loginRequested = false;
     QLabel *m_statusLabel = nullptr;
     QPushButton *m_reconnectButton = nullptr;
     TcpClient *m_tcpClient = nullptr;

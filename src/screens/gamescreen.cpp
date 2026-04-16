@@ -1,10 +1,12 @@
 #include "gamescreen.h"
+#include "wordinfodialog.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QListWidgetItem>
 
 #include "../utils/appstate.h"
 
@@ -35,6 +37,11 @@ void GameScreen::setupUI()
     mainLayout->addWidget(wordsLabel);
 
     m_wordsList = new QListWidget(this);
+    m_wordsList->setMaximumHeight(150);
+    connect(m_wordsList, &QListWidget::itemClicked, this, [this](QListWidgetItem *item)
+            {
+        if (!item) return;
+        onWordListItemClicked(m_wordsList->row(item)); });
     mainLayout->addWidget(m_wordsList);
 
     mainLayout->addSpacing(15);
@@ -108,15 +115,17 @@ void GameScreen::onNewWordReceived(const NewWordUpdate &update)
 {
     qDebug() << "GameScreen: New word received -" << update.kanji << "Meaning:" << update.meaning;
 
-    // Add word to used words list
+    // Add word to used words list - display only kanji
     if (m_wordsList && !update.kanji.isEmpty())
     {
-        QString displayText = update.kanji;
-        if (!update.meaning.isEmpty())
-        {
-            displayText += QString(" (%1)").arg(update.meaning);
-        }
-        m_wordsList->addItem(displayText);
+        m_wordsList->addItem(update.kanji);
+
+        // Store word data for popup
+        WordData wordData;
+        wordData.readings = update.readings;
+        wordData.translation = update.meaning;
+        wordData.partOfSpeech = update.partsOfSpeech;
+        m_wordDataMap[update.kanji] = wordData;
     }
 
     // Update last kana - get the last character of the word
@@ -198,7 +207,6 @@ void GameScreen::onWordHandleError(const QString &error)
     qWarning() << "Error submitting word:" << error;
 }
 
-
 void GameScreen::onPlayerJoinedGame(const PlayerJoinedGameInfo &info)
 {
     qDebug() << "Player joined game - Last Kana:" << info.lastKana << "Used words:" << info.usedWords.size();
@@ -211,14 +219,18 @@ void GameScreen::onPlayerJoinedGame(const PlayerJoinedGameInfo &info)
     if (m_wordsList)
     {
         m_wordsList->clear();
+        m_wordDataMap.clear();
+
         for (const auto &wordUpdate : info.usedWords)
         {
-            QString displayText = wordUpdate.kanji;
-            if (!wordUpdate.meaning.isEmpty())
-            {
-                displayText += QString(" (%1)").arg(wordUpdate.meaning);
-            }
-            m_wordsList->addItem(displayText);
+            m_wordsList->addItem(wordUpdate.kanji);
+
+            // Store word data for popup
+            WordData wordData;
+            wordData.readings = wordUpdate.readings;
+            wordData.translation = wordUpdate.meaning;
+            wordData.partOfSpeech = wordUpdate.partsOfSpeech;
+            m_wordDataMap[wordUpdate.kanji] = wordData;
         }
     }
 
@@ -270,4 +282,25 @@ void GameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &d
 void GameScreen::onExitButtonClicked()
 {
     navigate(ScreenNavigator::MainScreen);
+}
+
+void GameScreen::onWordListItemClicked(int row)
+{
+    if (row < 0 || !m_wordsList)
+        return;
+
+    QListWidgetItem *item = m_wordsList->item(row);
+    if (!item)
+        return;
+
+    QString kanji = item->text();
+    auto it = m_wordDataMap.find(kanji);
+    if (it == m_wordDataMap.end())
+        return;
+
+    const WordData &wordData = it.value();
+
+    WordInfoDialog dialog(kanji, wordData.readings, wordData.translation,
+                          wordData.partOfSpeech, this);
+    dialog.exec();
 }

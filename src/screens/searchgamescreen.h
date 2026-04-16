@@ -2,7 +2,7 @@
 #define SEARCHGAMESCREEN_H
 
 #include <QLineEdit>
-#include <QListWidget>
+#include <QTableWidget>
 
 #include "basescreen.h"
 #include "../services/serverprotocol.h"
@@ -21,6 +21,7 @@ private slots:
     void onRefreshButtonClicked();
     void onActiveGamesReceived(const QList<GameContext> &games);
     void onActiveGamesError(const QString &error);
+    void onTableCellClicked(int row, int column);
     void onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data = {}) override;
 
 private:
@@ -29,9 +30,9 @@ private:
     void displayGames(const QList<GameContext> &games);
 
     QLineEdit *m_searchInput = nullptr;
-    QListWidget *m_gamesList = nullptr;
+    QTableWidget *m_gamesTable = nullptr;
     ApiService *m_apiService = nullptr;
-    QList<GameContext> m_availableGames;
+    qulonglong m_selectedGameId = -1;
 };
 
 #endif // SEARCHGAMESCREEN_H

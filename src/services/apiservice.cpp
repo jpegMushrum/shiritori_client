@@ -262,6 +262,7 @@ void ApiService::loginResponse(const QString &response)
     m_sessionId = sessionId;
     AppState &appState = AppState::getInstance();
     appState.setSessionId(sessionId);
+    qDebug() << "Api set session id" << sessionId;
 
     emit loginSuccess(sessionId);
 }

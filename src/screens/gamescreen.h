@@ -3,6 +3,7 @@
 
 #include "basescreen.h"
 #include "../services/apiservice.h"
+#include <QMap>
 
 class GameScreen : public BaseScreen
 {
@@ -24,6 +25,7 @@ private slots:
     // void onGameInfoError(const QString &error);
     void onWordHandled(HandleWordStatus status);
     void onWordHandleError(const QString &error);
+    void onWordListItemClicked(int row);
 
 private:
     void setupUI();
@@ -37,6 +39,15 @@ private:
     class QLineEdit *m_wordInput = nullptr;
     class QListWidget *m_wordsList = nullptr;
     class QLabel *m_lastKanaLabel = nullptr;
+
+    // Word data storage for popup info
+    struct WordData
+    {
+        QStringList readings;
+        QString translation;
+        QStringList partOfSpeech;
+    };
+    QMap<QString, WordData> m_wordDataMap;
 
     // TODO: Add UI components
     // - Used words list
