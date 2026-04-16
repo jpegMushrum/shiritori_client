@@ -72,6 +72,10 @@ void GameScreen::connectSignals()
         connect(m_apiService, &ApiService::newWordReceived, this, &GameScreen::onNewWordReceived);
         connect(m_apiService, &ApiService::subscribeError, this, &GameScreen::onSubscribeError);
         connect(m_apiService, &ApiService::subscribeSuccess, this, &GameScreen::onSubscribeSuccess);
+        connect(m_apiService, &ApiService::playerJoinedGame, this, &GameScreen::onPlayerJoinedGame);
+        // DEPRECATED: gameInfoReceived is now handled by playerJoinedGame
+        // connect(m_apiService, &ApiService::gameInfoReceived, this, &GameScreen::onGameInfoReceived);
+        // connect(m_apiService, &ApiService::gameInfoError, this, &GameScreen::onGameInfoError);
         connect(m_apiService, &ApiService::wordHandled, this, &GameScreen::onWordHandled);
         connect(m_apiService, &ApiService::wordHandleError, this, &GameScreen::onWordHandleError);
     }
@@ -127,18 +131,6 @@ void GameScreen::onSubscribeSuccess()
 {
     qDebug() << "Successfully subscribed to game updates";
 
-    // Clear previous game state when subscribed
-    if (m_wordsList)
-    {
-        m_wordsList->clear();
-    }
-
-    if (m_lastKanaLabel)
-    {
-        m_lastKanaLabel->setText("Last Kana: (waiting for first word)");
-    }
-
-    // Enable input field
     if (m_wordInput)
     {
         m_wordInput->setEnabled(true);
@@ -204,7 +196,37 @@ void GameScreen::onWordHandled(HandleWordStatus status)
 void GameScreen::onWordHandleError(const QString &error)
 {
     qWarning() << "Error submitting word:" << error;
-    // TODO: Show error message to user
+}
+
+
+void GameScreen::onPlayerJoinedGame(const PlayerJoinedGameInfo &info)
+{
+    qDebug() << "Player joined game - Last Kana:" << info.lastKana << "Used words:" << info.usedWords.size();
+
+    if (m_lastKanaLabel && !info.lastKana.isEmpty())
+    {
+        m_lastKanaLabel->setText(QString("Last Kana: %1").arg(info.lastKana));
+    }
+
+    if (m_wordsList)
+    {
+        m_wordsList->clear();
+        for (const auto &wordUpdate : info.usedWords)
+        {
+            QString displayText = wordUpdate.kanji;
+            if (!wordUpdate.meaning.isEmpty())
+            {
+                displayText += QString(" (%1)").arg(wordUpdate.meaning);
+            }
+            m_wordsList->addItem(displayText);
+        }
+    }
+
+    if (m_wordInput)
+    {
+        m_wordInput->setEnabled(true);
+        m_wordInput->setFocus();
+    }
 }
 
 void GameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data)
@@ -235,10 +257,9 @@ void GameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &d
         if (m_wordInput)
         {
             m_wordInput->clear();
-            m_wordInput->setEnabled(false); // Disable until subscription succeeds
+            m_wordInput->setEnabled(false);
         }
 
-        // Subscribe to game updates
         if (m_apiService)
         {
             m_apiService->subscribeOnGameAsync(m_gameId);

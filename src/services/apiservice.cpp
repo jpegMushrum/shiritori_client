@@ -105,6 +105,55 @@ void ApiService::getActiveGamesAsync()
     qDebug() << "getActiveGames command: " << command;
 }
 
+// ==================== Game Management ====================
+
+void ApiService::startNewGameAsync(const QString &sessionId)
+{
+    if (!m_tcpClient)
+    {
+        m_lastError = "TCP client not set";
+        emit gameStartError(m_lastError);
+        return;
+    }
+
+    if (sessionId.isEmpty())
+    {
+        m_lastError = "Session ID not set";
+        emit gameStartError(m_lastError);
+        return;
+    }
+
+    int requestId = m_nextRequestId++;
+    QString command = QString("%1 startNewGame %2").arg(requestId).arg(sessionId);
+    m_pendingRequests[requestId] = [this](QString response)
+    { startNewGameResponse(response); };
+
+    sendCommand(command);
+
+    qDebug() << "Start new game command: " << command;
+}
+
+void ApiService::getGameInfoAsync(qulonglong gameId)
+{
+    // DEPRECATED: Game info is now obtained atomically through addPlayerToGame
+    // Use subscribeOnGameAsync instead which calls addPlayerToGame
+    if (!m_tcpClient)
+    {
+        m_lastError = "TCP client not set";
+        emit gameInfoError(m_lastError);
+        return;
+    }
+
+    int requestId = m_nextRequestId++;
+    QString command = QString("%1 getGameInfo %2").arg(requestId).arg(gameId);
+    m_pendingRequests[requestId] = [this](QString response)
+    { getGameInfoResponse(response); };
+
+    sendCommand(command);
+
+    qDebug() << "Get game info command: " << command;
+}
+
 // ==================== Game Subscription ====================
 
 void ApiService::subscribeOnGameAsync(qulonglong gameId)
@@ -250,27 +299,121 @@ void ApiService::getActiveGamesResponse(const QString &response)
     emit activeGamesReceived(games);
 }
 
+void ApiService::startNewGameResponse(const QString &response)
+{
+    if (ServerProtocolParser::isError(response))
+    {
+        m_lastError = response;
+        emit gameStartError(response);
+        return;
+    }
+
+    std::optional<GameContext> game = ServerProtocolParser::parseGameContext(response);
+    if (!game.has_value())
+    {
+        m_lastError = "Failed to parse game context";
+        emit gameStartError(m_lastError);
+        return;
+    }
+
+    emit gameStarted(*game);
+}
+
+void ApiService::getGameInfoResponse(const QString &response)
+{
+    if (ServerProtocolParser::isError(response))
+    {
+        m_lastError = response;
+        emit gameInfoError(response);
+        return;
+    }
+
+    std::optional<GameContext> game = ServerProtocolParser::parseGameContext(response);
+    if (!game.has_value())
+    {
+        m_lastError = "Failed to parse game context";
+        emit gameInfoError(m_lastError);
+        return;
+    }
+
+    emit gameInfoReceived(*game);
+}
+
 void ApiService::subscribeResponse(const QString &response, int requestId)
 {
     qDebug() << "Subscribe response:" << response;
+
+    // Check for "Player added successfully"
     if (response.endsWith("successfully"))
     {
-        m_pendingRequests[requestId] = [this, requestId](QString wordResponse)
-        { newWordResponse(wordResponse, requestId); };
+        qDebug() << "Player added successfully, waiting for game info...";
         emit subscribeSuccess();
+        // Stay subscribed for playerJoinedGame and newWord updates
+        m_pendingRequests[requestId] = [this, requestId](QString nextResponse)
+        { subscribeResponse(nextResponse, requestId); };
+        return;
     }
-    else if (ServerProtocolParser::isError(response))
+
+    // Check for playerJoinedGame info
+    if (response.startsWith("playerJoinedGame"))
+    {
+        qDebug() << "Received playerJoinedGame info";
+        std::optional<PlayerJoinedGameInfo> info = ServerProtocolParser::parsePlayerJoinedGameInfo(response);
+        if (info.has_value())
+        {
+            qDebug() << "Game info parsed - Last Kana:" << info->lastKana << "Used words:" << info->usedWords.size();
+            emit playerJoinedGame(*info);
+        }
+        else
+        {
+            qWarning() << "Failed to parse playerJoinedGame";
+        }
+
+        // Stay subscribed for newWord updates
+        m_pendingRequests[requestId] = [this, requestId](QString wordResponse)
+        { subscribeResponse(wordResponse, requestId); };
+        return;
+    }
+
+    // Check for newWord update
+    if (response.startsWith("newWord"))
+    {
+        qDebug() << "Received new word update";
+        std::optional<NewWordUpdate> newWord = ServerProtocolParser::parseNewWordUpdate(response);
+        if (newWord.has_value())
+        {
+            qDebug() << "New Word" << newWord->kanji;
+            emit newWordReceived(*newWord);
+        }
+        else
+        {
+            qWarning() << "Failed to parse newWord update";
+            emit gameUpdateReceived(response);
+        }
+
+        // Re-add handler to continue listening for more words
+        m_pendingRequests[requestId] = [this, requestId](QString nextWord)
+        { subscribeResponse(nextWord, requestId); };
+        return;
+    }
+
+    // Error
+    if (ServerProtocolParser::isError(response))
     {
         emit subscribeError(response);
+        return;
     }
-    else
-    {
-        emit subscribeError(response);
-    }
+
+    // Unknown response
+    qDebug() << "Unknown subscribe response:" << response;
+    emit subscribeError(response);
 }
 
+// DEPRECATED: This method is now handled by subscribeResponse
+// The addPlayerToGame protocol now handles playerJoinedGame and newWord updates atomically
 void ApiService::newWordResponse(const QString &response, int requestId)
 {
+    qDebug() << "DEPRECATED: newWordResponse called - use subscribeResponse instead";
     qDebug() << "Received new word data:" << response;
 
     std::optional<NewWordUpdate> newWord = ServerProtocolParser::parseNewWordUpdate(response);

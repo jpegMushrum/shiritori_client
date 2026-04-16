@@ -34,6 +34,11 @@ public:
 
     void getActiveGamesAsync();
 
+    // Game management
+    void startNewGameAsync(const QString &sessionId);
+
+    void getGameInfoAsync(qulonglong gameId);
+
     // Game subscription
     void subscribeOnGameAsync(qulonglong gameId);
 
@@ -68,6 +73,8 @@ signals:
     void playerAddedToGame();
     void playerAddError(const QString &error);
 
+    void playerJoinedGame(const PlayerJoinedGameInfo &info);
+
     void wordHandled(HandleWordStatus status);
     void wordHandleError(const QString &error);
 
@@ -98,6 +105,8 @@ private:
     void loginResponse(const QString &response);
     void getUserInfoResponse(const QString &response);
     void getActiveGamesResponse(const QString &response);
+    void startNewGameResponse(const QString &response);
+    void getGameInfoResponse(const QString &response);
     void subscribeResponse(const QString &response, int requestId);
     void newWordResponse(const QString &response, int requestId);
     void handleWordResponse(const QString &response);

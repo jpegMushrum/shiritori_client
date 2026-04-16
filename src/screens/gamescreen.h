@@ -18,6 +18,10 @@ private slots:
     void onNewWordReceived(const NewWordUpdate &update);
     void onSubscribeError(const QString &error);
     void onSubscribeSuccess();
+    void onPlayerJoinedGame(const PlayerJoinedGameInfo &info);
+    // DEPRECATED: getGameInfo is now handled by addPlayerToGame
+    // void onGameInfoReceived(const GameContext &game);
+    // void onGameInfoError(const QString &error);
     void onWordHandled(HandleWordStatus status);
     void onWordHandleError(const QString &error);
 

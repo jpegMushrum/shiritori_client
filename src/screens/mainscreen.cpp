@@ -53,17 +53,17 @@ void MainScreen::setupUI()
     mainLayout->addStretch();
 
     // API service
-    AppState& appState = AppState::getInstance();
+    AppState &appState = AppState::getInstance();
 
     m_apiService = appState.getApiService();
     connect(m_apiService, &ApiService::gameStarted, this, &MainScreen::onGameStarted);
     connect(m_apiService, &ApiService::gameStartError, this, &MainScreen::onGameStartError);
 }
 
-
 void MainScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data)
 {
-    if (screen == ScreenNavigator::MainScreen) {
+    if (screen == ScreenNavigator::MainScreen)
+    {
         // Smth
     }
 }
@@ -76,14 +76,15 @@ void MainScreen::onNewGameButtonClicked()
 void MainScreen::startNewGame()
 {
     AppState &appState = AppState::getInstance();
-    if (!appState.isLoggedIn()) {
+    if (!appState.isLoggedIn())
+    {
         qDebug() << "Not logged in";
         navigate(ScreenNavigator::LoginScreen);
         return;
     }
 
     qDebug() << "Starting new game...";
-    // m_apiService->startNewGameAsync(appState.getSessionId());
+    m_apiService->startNewGameAsync(appState.getSessionId());
 }
 
 void MainScreen::onGameStarted(const GameContext &game)
@@ -115,12 +116,14 @@ void MainScreen::onLogoutButtonClicked()
 {
     AppState &appState = AppState::getInstance();
     qDebug() << "Logout button: " << appState.isLoggedIn() << " " << m_apiService;
-    if (!appState.isLoggedIn()) {
+    if (!appState.isLoggedIn())
+    {
         navigate(ScreenNavigator::LoginScreen);
         return;
     }
 
-    if (m_apiService) {
+    if (m_apiService)
+    {
         m_apiService->logoutAsync(appState.getSessionId());
     }
     appState.logout();

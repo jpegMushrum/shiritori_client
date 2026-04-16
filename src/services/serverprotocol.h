@@ -6,7 +6,8 @@
 #include <optional>
 
 // Handle Word Response Status Codes
-enum class HandleWordStatus {
+enum class HandleWordStatus
+{
     OK,
     GOT_ERROR,
     WRONG_ORDER,
@@ -23,14 +24,16 @@ enum class HandleWordStatus {
 };
 
 // User info from getUserInfo
-struct UserInfo {
+struct UserInfo
+{
     qulonglong userId;
     QString nickname;
     double averageWordsPerGame;
 };
 
 // Game context from getActiveGames, getGameInfo, startNewGame
-struct GameContext {
+struct GameContext
+{
     qulonglong gameId;
     int wordsCount;
     int playersCount;
@@ -40,7 +43,8 @@ struct GameContext {
 };
 
 // Game history entry from getGamesHistory
-struct GameHistoryEntry {
+struct GameHistoryEntry
+{
     qulonglong gameId;
     qulonglong userId;
     int wordsCount;
@@ -48,7 +52,8 @@ struct GameHistoryEntry {
 };
 
 // New word update from subscription
-struct NewWordUpdate {
+struct NewWordUpdate
+{
     qulonglong gameId;
     QString kanji;
     QString meaning;
@@ -56,8 +61,17 @@ struct NewWordUpdate {
     QList<QString> readings;
 };
 
+// Player joined game response
+struct PlayerJoinedGameInfo
+{
+    qulonglong gameId;
+    QString lastKana;
+    QList<NewWordUpdate> usedWords;
+};
+
 // Protocol parsing utilities
-class ServerProtocolParser {
+class ServerProtocolParser
+{
 public:
     // Parse UserInfo from "userId nickname averageWordsPerGame"
     static std::optional<UserInfo> parseUserInfo(const QString &response);
@@ -85,6 +99,9 @@ public:
 
     // Parse NewWordUpdate from JSON-like format
     static std::optional<NewWordUpdate> parseNewWordUpdate(const QString &response);
+
+    // Parse PlayerJoinedGameInfo from "playerJoinedGame <gameId> {JSON}"
+    static std::optional<PlayerJoinedGameInfo> parsePlayerJoinedGameInfo(const QString &response);
 };
 
 #endif // SERVERPROTOCOL_H

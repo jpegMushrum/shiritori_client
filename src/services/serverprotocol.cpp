@@ -183,13 +183,18 @@ QString ServerProtocolParser::extractErrorMessage(const QString &response)
 
 std::optional<NewWordUpdate> ServerProtocolParser::parseNewWordUpdate(const QString &response)
 {
-    // Format: NewWord <gameId> {"kanji":"string","meaning":"string","partsOfSpeach":[]string,"readings":[]string}
-    if (!response.startsWith("NewWord"))
+    // Format: newWord <gameId> <lastKana> {"kanji":"string","meaning":"string","partsOfSpeach":[]string,"readings":[]string}
+    // or old format: NewWord <gameId> {"kanji":"string","meaning":"string","partsOfSpeach":[]string,"readings":[]string}
+
+    // Check for both formats
+    bool isNewFormat = response.startsWith("newWord");
+    bool isOldFormat = response.startsWith("NewWord");
+
+    if (!isNewFormat && !isOldFormat)
     {
         return std::nullopt;
     }
 
-    // Split command, gameId, and JSON payload
     int firstSpace = response.indexOf(' ');
     if (firstSpace == -1)
     {
@@ -211,8 +216,26 @@ std::optional<NewWordUpdate> ServerProtocolParser::parseNewWordUpdate(const QStr
         return std::nullopt;
     }
 
+    int jsonStart;
+
+    if (isNewFormat)
+    {
+        // New format has lastKana between gameId and JSON
+        int thirdSpace = response.indexOf(' ', secondSpace + 1);
+        if (thirdSpace == -1)
+        {
+            return std::nullopt;
+        }
+        jsonStart = thirdSpace + 1;
+    }
+    else
+    {
+        // Old format goes directly to JSON
+        jsonStart = secondSpace + 1;
+    }
+
     // Extract JSON payload
-    QString jsonStr = response.mid(secondSpace + 1).trimmed();
+    QString jsonStr = response.mid(jsonStart).trimmed();
 
     // Parse JSON
     QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
@@ -255,4 +278,99 @@ std::optional<NewWordUpdate> ServerProtocolParser::parseNewWordUpdate(const QStr
     }
 
     return update;
+}
+
+std::optional<PlayerJoinedGameInfo> ServerProtocolParser::parsePlayerJoinedGameInfo(const QString &response)
+{
+    // Format: playerJoinedGame <gameId> {"lastKana":"string","usedWords":[{word objects}]}
+    if (!response.startsWith("playerJoinedGame"))
+    {
+        return std::nullopt;
+    }
+
+    // Split command, gameId, and JSON payload
+    int firstSpace = response.indexOf(' ');
+    if (firstSpace == -1)
+    {
+        return std::nullopt;
+    }
+
+    int secondSpace = response.indexOf(' ', firstSpace + 1);
+    if (secondSpace == -1)
+    {
+        return std::nullopt;
+    }
+
+    // Extract gameId
+    QString gameIdStr = response.mid(firstSpace + 1, secondSpace - firstSpace - 1);
+    bool ok;
+    qulonglong gameId = gameIdStr.toULongLong(&ok);
+    if (!ok)
+    {
+        return std::nullopt;
+    }
+
+    // Extract JSON payload
+    QString jsonStr = response.mid(secondSpace + 1).trimmed();
+
+    // Parse JSON
+    QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
+    if (!doc.isObject())
+    {
+        return std::nullopt;
+    }
+
+    QJsonObject obj = doc.object();
+
+    // Extract lastKana
+    if (!obj.contains("lastKana"))
+    {
+        return std::nullopt;
+    }
+
+    PlayerJoinedGameInfo info;
+    info.gameId = gameId;
+    info.lastKana = obj["lastKana"].toString();
+
+    // Extract usedWords array
+    if (obj.contains("usedWords") && obj["usedWords"].isArray())
+    {
+        QJsonArray wordsArray = obj["usedWords"].toArray();
+        for (const QJsonValue &wordValue : wordsArray)
+        {
+            if (!wordValue.isObject())
+                continue;
+
+            QJsonObject wordObj = wordValue.toObject();
+
+            NewWordUpdate word;
+            word.gameId = gameId;
+            word.kanji = wordObj["kanji"].toString();
+            word.meaning = wordObj["meaning"].toString();
+
+            // Extract partsOfSpeech array
+            if (wordObj.contains("partsOfSpeach") && wordObj["partsOfSpeach"].isArray())
+            {
+                QJsonArray partsArray = wordObj["partsOfSpeach"].toArray();
+                for (const QJsonValue &value : partsArray)
+                {
+                    word.partsOfSpeech.append(value.toString());
+                }
+            }
+
+            // Extract readings array
+            if (wordObj.contains("readings") && wordObj["readings"].isArray())
+            {
+                QJsonArray readingsArray = wordObj["readings"].toArray();
+                for (const QJsonValue &value : readingsArray)
+                {
+                    word.readings.append(value.toString());
+                }
+            }
+
+            info.usedWords.append(word);
+        }
+    }
+
+    return info;
 }
