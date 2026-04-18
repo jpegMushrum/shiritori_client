@@ -7,6 +7,8 @@
 #include "screens/statsscreen.h"
 #include "services/tcpclient.h"
 #include "services/connectionstatuswidget.h"
+#include "services/notificationmanager.h"
+#include "utils/toastwidget.h"
 #include "utils/constants.h"
 #include "utils/screennavigator.h"
 #include "utils/appstate.h"
@@ -64,6 +66,16 @@ void Application::setupUI()
     m_stackedWidget->addWidget(m_statsScreen);      // index 4 - StatsScreen
 
     m_stackedWidget->setCurrentWidget(m_loginScreen);
+
+    // Create toast widget for notifications
+    m_toastWidget = new ToastWidget(this);
+
+    // Create notification manager
+    m_notificationManager = new NotificationManager(this);
+    m_notificationManager->setToastWidget(m_toastWidget);
+
+    // Make notification manager accessible from app state
+    appState.setNotificationManager(m_notificationManager);
 
     // Create connection status widget and add it to bottom-right
     m_connectionStatusWidget = new ConnectionStatusWidget(this);

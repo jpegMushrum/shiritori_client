@@ -4,6 +4,8 @@
 #include "../models/user.h"
 #include "../services/apiservice.h"
 
+class NotificationManager;
+
 class AppState
 {
 public:
@@ -30,6 +32,9 @@ public:
     ApiService *getApiService() const;
     void setApiService(ApiService *apiService);
 
+    NotificationManager *getNotificationManager() const;
+    void setNotificationManager(NotificationManager *notificationManager);
+
     bool isLoggedIn() const;
     void logout();
 
@@ -43,6 +48,7 @@ private:
     TcpClient *m_apiTcpClient = nullptr;
 
     ApiService *m_apiService = nullptr;
+    NotificationManager *m_notificationManager = nullptr;
 };
 
 #endif // APPSTATE_H

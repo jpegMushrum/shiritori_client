@@ -56,6 +56,8 @@ set(PROJECT_SOURCES
         src/services/tcpclient.cpp
         src/services/connectionstatuswidget.h
         src/services/connectionstatuswidget.cpp
+        src/services/notificationmanager.h 
+        src/services/notificationmanager.cpp
         
         # Utils
         src/utils/constants.h
@@ -63,6 +65,10 @@ set(PROJECT_SOURCES
         src/utils/appstate.cpp
         src/utils/screennavigator.h
         src/utils/screennavigator.cpp
+        src/utils/toast.h
+        src/utils/toast.cpp
+        src/utils/toastwidget.h
+        src/utils/toastwidget.cpp
         
         # Resources
         resources/resources.qrc

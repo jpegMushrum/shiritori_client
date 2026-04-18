@@ -80,9 +80,7 @@ void GameScreen::connectSignals()
         connect(m_apiService, &ApiService::subscribeError, this, &GameScreen::onSubscribeError);
         connect(m_apiService, &ApiService::subscribeSuccess, this, &GameScreen::onSubscribeSuccess);
         connect(m_apiService, &ApiService::playerJoinedGame, this, &GameScreen::onPlayerJoinedGame);
-        // DEPRECATED: gameInfoReceived is now handled by playerJoinedGame
-        // connect(m_apiService, &ApiService::gameInfoReceived, this, &GameScreen::onGameInfoReceived);
-        // connect(m_apiService, &ApiService::gameInfoError, this, &GameScreen::onGameInfoError);
+
         connect(m_apiService, &ApiService::wordHandled, this, &GameScreen::onWordHandled);
         connect(m_apiService, &ApiService::wordHandleError, this, &GameScreen::onWordHandleError);
     }
@@ -108,6 +106,12 @@ void GameScreen::onSubmitButtonClicked()
     if (m_apiService)
     {
         m_apiService->handleWordAsync(m_gameId, m_sessionId, word);
+    }
+}
+
+void GameScreen::keyPressEvent(QKeyEvent* e) {
+    if (e->key() == Qt::Key_Enter) {
+        onSubmitButtonClicked();
     }
 }
 

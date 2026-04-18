@@ -83,6 +83,16 @@ void AppState::setApiService(ApiService *apiService)
     m_apiService = apiService;
 }
 
+NotificationManager *AppState::getNotificationManager() const
+{
+    return m_notificationManager;
+}
+
+void AppState::setNotificationManager(NotificationManager *notificationManager)
+{
+    m_notificationManager = notificationManager;
+}
+
 void AppState::logout()
 {
     m_currentUser = User();

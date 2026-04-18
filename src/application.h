@@ -7,6 +7,8 @@
 
 class TcpClient;
 class ConnectionStatusWidget;
+class NotificationManager;
+class ToastWidget;
 
 class Application : public QMainWindow
 {
@@ -23,6 +25,8 @@ private:
     QStackedWidget *m_stackedWidget = nullptr;
     ScreenNavigator *m_navigator = nullptr;
     ConnectionStatusWidget *m_connectionStatusWidget = nullptr;
+    NotificationManager *m_notificationManager = nullptr;
+    ToastWidget *m_toastWidget = nullptr;
 
     // Screen pointers
     class BaseScreen *m_loginScreen = nullptr;

@@ -4,6 +4,7 @@
 #include "basescreen.h"
 #include "../services/apiservice.h"
 #include <QMap>
+#include <QKeyEvent>
 
 class GameScreen : public BaseScreen
 {
@@ -11,6 +12,9 @@ class GameScreen : public BaseScreen
 
 public:
     explicit GameScreen(QWidget *parent = nullptr);
+
+protected:
+    void keyPressEvent(QKeyEvent* e) override;
 
 private slots:
     void onSubmitButtonClicked();
