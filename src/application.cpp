@@ -4,6 +4,7 @@
 #include "screens/mainscreen.h"
 #include "screens/searchgamescreen.h"
 #include "screens/gamescreen.h"
+#include "screens/gameendscreen.h"
 #include "screens/statsscreen.h"
 #include "services/tcpclient.h"
 #include "services/connectionstatuswidget.h"
@@ -51,12 +52,14 @@ void Application::setupUI()
     m_mainScreen = new MainScreen(this);
     m_searchGameScreen = new SearchGameScreen(this);
     m_gameScreen = new GameScreen(this);
+    m_gameEndScreen = new GameEndScreen(this);
     m_statsScreen = new StatsScreen(this);
 
     m_loginScreen->setNavigator(m_navigator);
     m_mainScreen->setNavigator(m_navigator);
     m_searchGameScreen->setNavigator(m_navigator);
     m_gameScreen->setNavigator(m_navigator);
+    m_gameEndScreen->setNavigator(m_navigator);
     m_statsScreen->setNavigator(m_navigator);
 
     m_stackedWidget->addWidget(m_loginScreen);      // index 0 - LoginScreen
@@ -64,8 +67,17 @@ void Application::setupUI()
     m_stackedWidget->addWidget(m_searchGameScreen); // index 2 - SearchGameScreen
     m_stackedWidget->addWidget(m_gameScreen);       // index 3 - GameScreen
     m_stackedWidget->addWidget(m_statsScreen);      // index 4 - StatsScreen
+    m_stackedWidget->addWidget(m_gameEndScreen);    // index 5 - GameEndScreen
 
     m_stackedWidget->setCurrentWidget(m_loginScreen);
+
+    // Connect GameScreen to GameEndScreen
+    auto gameScreen = qobject_cast<class GameScreen *>(m_gameScreen);
+    auto gameEndScreen = qobject_cast<class GameEndScreen *>(m_gameEndScreen);
+    if (gameScreen && gameEndScreen)
+    {
+        gameScreen->setGameEndScreen(gameEndScreen);
+    }
 
     // Create toast widget for notifications
     m_toastWidget = new ToastWidget(this);

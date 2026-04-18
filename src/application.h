@@ -33,6 +33,7 @@ private:
     class BaseScreen *m_mainScreen = nullptr;
     class BaseScreen *m_searchGameScreen = nullptr;
     class BaseScreen *m_gameScreen = nullptr;
+    class BaseScreen *m_gameEndScreen = nullptr;
     class BaseScreen *m_statsScreen = nullptr;
 };
 

@@ -1,4 +1,5 @@
 #include "gamescreen.h"
+#include "gameendscreen.h"
 #include "wordinfodialog.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -80,6 +81,8 @@ void GameScreen::connectSignals()
         connect(m_apiService, &ApiService::subscribeError, this, &GameScreen::onSubscribeError);
         connect(m_apiService, &ApiService::subscribeSuccess, this, &GameScreen::onSubscribeSuccess);
         connect(m_apiService, &ApiService::playerJoinedGame, this, &GameScreen::onPlayerJoinedGame);
+        connect(m_apiService, static_cast<void (ApiService::*)(const GameStoppedEvent &)>(&ApiService::gameStopped),
+                this, &GameScreen::onGameStopped);
 
         connect(m_apiService, &ApiService::wordHandled, this, &GameScreen::onWordHandled);
         connect(m_apiService, &ApiService::wordHandleError, this, &GameScreen::onWordHandleError);
@@ -109,15 +112,17 @@ void GameScreen::onSubmitButtonClicked()
     }
 }
 
-void GameScreen::keyPressEvent(QKeyEvent* e) {
-    if (e->key() == Qt::Key_Enter) {
+void GameScreen::keyPressEvent(QKeyEvent *e)
+{
+    if (e->key() == Qt::Key_Enter)
+    {
         onSubmitButtonClicked();
     }
 }
 
 void GameScreen::onNewWordReceived(const NewWordUpdate &update)
 {
-    qDebug() << "GameScreen: New word received -" << update.kanji << "Meaning:" << update.meaning;
+    qDebug() << "GameScreen: New word received -" << update.kanji;
 
     // Add word to used words list - display only kanji
     if (m_wordsList && !update.kanji.isEmpty())
@@ -127,7 +132,7 @@ void GameScreen::onNewWordReceived(const NewWordUpdate &update)
         // Store word data for popup
         WordData wordData;
         wordData.readings = update.readings;
-        wordData.translation = update.meaning;
+        wordData.translation = update.meanings.join(", ");
         wordData.partOfSpeech = update.partsOfSpeech;
         m_wordDataMap[update.kanji] = wordData;
     }
@@ -232,7 +237,7 @@ void GameScreen::onPlayerJoinedGame(const PlayerJoinedGameInfo &info)
             // Store word data for popup
             WordData wordData;
             wordData.readings = wordUpdate.readings;
-            wordData.translation = wordUpdate.meaning;
+            wordData.translation = wordUpdate.meanings.join(", ");
             wordData.partOfSpeech = wordUpdate.partsOfSpeech;
             m_wordDataMap[wordUpdate.kanji] = wordData;
         }
@@ -307,4 +312,20 @@ void GameScreen::onWordListItemClicked(int row)
     WordInfoDialog dialog(kanji, wordData.readings, wordData.translation,
                           wordData.partOfSpeech, this);
     dialog.exec();
+}
+
+void GameScreen::onGameStopped(const GameStoppedEvent &event)
+{
+    qDebug() << "Game stopped - transitioning to game end screen";
+
+    if (m_gameEndScreen)
+    {
+        m_gameEndScreen->displayGameResults(event);
+        navigate(ScreenNavigator::GameEndScreen);
+    }
+}
+
+void GameScreen::setGameEndScreen(GameEndScreen *gameEndScreen)
+{
+    m_gameEndScreen = gameEndScreen;
 }

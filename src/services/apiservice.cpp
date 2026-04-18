@@ -344,25 +344,36 @@ void ApiService::subscribeResponse(const QString &response, int requestId)
 {
     qDebug() << "Subscribe response:" << response;
 
-    // Check for "Player added successfully"
-    if (response.endsWith("successfully"))
+    // === helper для переподписки ===
+    auto resubscribe = [this, requestId]()
+    {
+        m_pendingRequests[requestId] = [this, requestId](QString nextResponse)
+        {
+            subscribeResponse(nextResponse, requestId);
+        };
+    };
+
+    // === SUCCESS ===
+    if (response == "Player added successfully")
     {
         qDebug() << "Player added successfully, waiting for game info...";
         emit subscribeSuccess();
-        // Stay subscribed for playerJoinedGame and newWord updates
-        m_pendingRequests[requestId] = [this, requestId](QString nextResponse)
-        { subscribeResponse(nextResponse, requestId); };
+
+        resubscribe();
         return;
     }
 
-    // Check for playerJoinedGame info
+    // === PLAYER JOINED ===
     if (response.startsWith("playerJoinedGame"))
     {
         qDebug() << "Received playerJoinedGame info";
-        std::optional<PlayerJoinedGameInfo> info = ServerProtocolParser::parsePlayerJoinedGameInfo(response);
+
+        auto info = ServerProtocolParser::parsePlayerJoinedGameInfo(response);
         if (info.has_value())
         {
-            qDebug() << "Game info parsed - Last Kana:" << info->lastKana << "Used words:" << info->usedWords.size();
+            qDebug() << "Game info parsed - Last Kana:" << info->lastKana
+                     << "Used words:" << info->usedWords.size();
+
             emit playerJoinedGame(*info);
         }
         else
@@ -370,71 +381,72 @@ void ApiService::subscribeResponse(const QString &response, int requestId)
             qWarning() << "Failed to parse playerJoinedGame";
         }
 
-        // Stay subscribed for newWord updates
-        m_pendingRequests[requestId] = [this, requestId](QString wordResponse)
-        { subscribeResponse(wordResponse, requestId); };
+        resubscribe();
         return;
     }
 
-    // Check for newWord update
-    if (response.startsWith("newWord"))
+    // === GAME UPDATE (новый основной механизм) ===
+    if (response.startsWith("gameUpdate"))
     {
-        qDebug() << "Received new word update";
-        std::optional<NewWordUpdate> newWord = ServerProtocolParser::parseNewWordUpdate(response);
-        if (newWord.has_value())
+        qDebug() << "Received game update";
+
+        auto event = ServerProtocolParser::parseGameUpdate(response);
+
+        if (event.has_value())
         {
-            qDebug() << "New Word" << newWord->kanji;
-            emit newWordReceived(*newWord);
+            bool isGameStopped = false;
+
+            std::visit([this, &isGameStopped](auto&& e)
+                       {
+                           using T = std::decay_t<decltype(e)>;
+
+                           // === WORD PLAYED ===
+                           if constexpr (std::is_same_v<T, WordPlayedEvent>)
+                           {
+                               qDebug() << "Word played:" << e.word.kanji
+                                        << "| Last kana:" << e.lastKana;
+
+                               emit newWordReceived(e.word);
+                           }
+                           // === GAME STOPPED ===
+                           else if constexpr (std::is_same_v<T, GameStoppedEvent>)
+                           {
+                               qDebug() << "Game stopped - Scores count:" << e.scores.size();
+
+                               emit gameStopped(e);
+                               isGameStopped = true;
+                           }
+                       }, *event);
+
+            // если игра закончилась — НЕ переподписываемся
+            if (!isGameStopped)
+            {
+                resubscribe();
+            }
+
+            return;
         }
         else
         {
-            qWarning() << "Failed to parse newWord update";
+            qWarning() << "Failed to parse gameUpdate";
             emit gameUpdateReceived(response);
-        }
 
-        // Re-add handler to continue listening for more words
-        m_pendingRequests[requestId] = [this, requestId](QString nextWord)
-        { subscribeResponse(nextWord, requestId); };
-        return;
+            resubscribe();
+            return;
+        }
     }
 
-    // Error
+    // === ERROR ===
     if (ServerProtocolParser::isError(response))
     {
+        qWarning() << "Subscribe error:" << response;
         emit subscribeError(response);
         return;
     }
 
-    // Unknown response
+    // === UNKNOWN ===
     qDebug() << "Unknown subscribe response:" << response;
     emit subscribeError(response);
-}
-
-// DEPRECATED: This method is now handled by subscribeResponse
-// The addPlayerToGame protocol now handles playerJoinedGame and newWord updates atomically
-void ApiService::newWordResponse(const QString &response, int requestId)
-{
-    qDebug() << "DEPRECATED: newWordResponse called - use subscribeResponse instead";
-    qDebug() << "Received new word data:" << response;
-
-    std::optional<NewWordUpdate> newWord = ServerProtocolParser::parseNewWordUpdate(response);
-    if (newWord.has_value())
-    {
-        qDebug() << "New Word" << newWord->kanji;
-        emit newWordReceived(*newWord);
-    }
-    else if (ServerProtocolParser::isError(response))
-    {
-        qWarning() << "Error from server:" << response;
-        emit gameUpdateReceived(response);
-    }
-    else
-    {
-        qDebug() << "Unrecognized message:" << response;
-    }
-
-    m_pendingRequests[requestId] = [this, requestId](QString wordResponse)
-    { newWordResponse(wordResponse, requestId); };
 }
 
 void ApiService::handleWordResponse(const QString &response)

@@ -181,105 +181,6 @@ QString ServerProtocolParser::extractErrorMessage(const QString &response)
     return response.mid(6).trimmed();
 }
 
-std::optional<NewWordUpdate> ServerProtocolParser::parseNewWordUpdate(const QString &response)
-{
-    // Format: newWord <gameId> <lastKana> {"kanji":"string","meaning":"string","partsOfSpeach":[]string,"readings":[]string}
-    // or old format: NewWord <gameId> {"kanji":"string","meaning":"string","partsOfSpeach":[]string,"readings":[]string}
-
-    // Check for both formats
-    bool isNewFormat = response.startsWith("newWord");
-    bool isOldFormat = response.startsWith("NewWord");
-
-    if (!isNewFormat && !isOldFormat)
-    {
-        return std::nullopt;
-    }
-
-    int firstSpace = response.indexOf(' ');
-    if (firstSpace == -1)
-    {
-        return std::nullopt;
-    }
-
-    int secondSpace = response.indexOf(' ', firstSpace + 1);
-    if (secondSpace == -1)
-    {
-        return std::nullopt;
-    }
-
-    // Extract gameId
-    QString gameIdStr = response.mid(firstSpace + 1, secondSpace - firstSpace - 1);
-    bool ok;
-    qulonglong gameId = gameIdStr.toULongLong(&ok);
-    if (!ok)
-    {
-        return std::nullopt;
-    }
-
-    int jsonStart;
-
-    if (isNewFormat)
-    {
-        // New format has lastKana between gameId and JSON
-        int thirdSpace = response.indexOf(' ', secondSpace + 1);
-        if (thirdSpace == -1)
-        {
-            return std::nullopt;
-        }
-        jsonStart = thirdSpace + 1;
-    }
-    else
-    {
-        // Old format goes directly to JSON
-        jsonStart = secondSpace + 1;
-    }
-
-    // Extract JSON payload
-    QString jsonStr = response.mid(jsonStart).trimmed();
-
-    // Parse JSON
-    QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
-    if (!doc.isObject())
-    {
-        return std::nullopt;
-    }
-
-    QJsonObject obj = doc.object();
-
-    // Extract kanji and meaning
-    if (!obj.contains("kanji") || !obj.contains("meaning"))
-    {
-        return std::nullopt;
-    }
-
-    NewWordUpdate update;
-    update.gameId = gameId;
-    update.kanji = obj["kanji"].toString();
-    update.meaning = obj["meaning"].toString();
-
-    // Extract partsOfSpeech array (note: typo in protocol is "partsOfSpeach")
-    if (obj.contains("partsOfSpeach") && obj["partsOfSpeach"].isArray())
-    {
-        QJsonArray partsArray = obj["partsOfSpeach"].toArray();
-        for (const QJsonValue &value : partsArray)
-        {
-            update.partsOfSpeech.append(value.toString());
-        }
-    }
-
-    // Extract readings array
-    if (obj.contains("readings") && obj["readings"].isArray())
-    {
-        QJsonArray readingsArray = obj["readings"].toArray();
-        for (const QJsonValue &value : readingsArray)
-        {
-            update.readings.append(value.toString());
-        }
-    }
-
-    return update;
-}
-
 std::optional<PlayerJoinedGameInfo> ServerProtocolParser::parsePlayerJoinedGameInfo(const QString &response)
 {
     // Format: playerJoinedGame <gameId> {"lastKana":"string","usedWords":[{word objects}]}
@@ -346,7 +247,16 @@ std::optional<PlayerJoinedGameInfo> ServerProtocolParser::parsePlayerJoinedGameI
             NewWordUpdate word;
             word.gameId = gameId;
             word.kanji = wordObj["kanji"].toString();
-            word.meaning = wordObj["meaning"].toString();
+
+            // Extract meanings array
+            if (wordObj["meanings"].isArray())
+            {
+                QJsonArray meaningsArray = wordObj["meanings"].toArray();
+                for (const QJsonValue &value : meaningsArray)
+                {
+                    word.meanings.append(value.toString());
+                }
+            }
 
             // Extract partsOfSpeech array
             if (wordObj.contains("partsOfSpeach") && wordObj["partsOfSpeach"].isArray())
@@ -373,4 +283,86 @@ std::optional<PlayerJoinedGameInfo> ServerProtocolParser::parsePlayerJoinedGameI
     }
 
     return info;
+}
+
+std::optional<std::variant<WordPlayedEvent, GameStoppedEvent>>
+ServerProtocolParser::parseGameUpdate(const QString& response)
+{
+    if (!response.startsWith("gameUpdate"))
+        return std::nullopt;
+
+    int firstSpace = response.indexOf(' ');
+    int secondSpace = response.indexOf(' ', firstSpace + 1);
+    if (secondSpace == -1)
+        return std::nullopt;
+
+    bool ok;
+    qulonglong gameId = response.mid(firstSpace + 1,
+                                     secondSpace - firstSpace - 1).toULongLong(&ok);
+    if (!ok)
+        return std::nullopt;
+
+    QString jsonStr = response.mid(secondSpace + 1).trimmed();
+
+    QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
+    if (!doc.isObject())
+        return std::nullopt;
+
+    QJsonObject obj = doc.object();
+
+    QString type = obj["type"].toString();
+
+    // ================= WORD PLAYED =================
+    if (type == "wordPlayed")
+    {
+        WordPlayedEvent event;
+        event.type = GameEventType::WordPlayed;
+        event.gameId = gameId;
+
+        QJsonObject wordObj = obj["word"].toObject();
+
+        event.word.gameId = gameId;
+        event.word.kanji = wordObj["kanji"].toString();
+
+        // meanings
+        for (auto v : wordObj["meanings"].toArray())
+            event.word.meanings.append(v.toString());
+
+        // partsOfSpeach
+        for (auto v : wordObj["partsOfSpeach"].toArray())
+            event.word.partsOfSpeech.append(v.toString());
+
+        // readings
+        for (auto v : wordObj["readings"].toArray())
+            event.word.readings.append(v.toString());
+
+        event.lastKana = obj["lastKana"].toString();
+
+        return event;
+    }
+
+    // ================= GAME STOPPED =================
+    if (type == "gameStopped")
+    {
+        GameStoppedEvent event;
+        event.type = GameEventType::GameStopped;
+        event.gameId = gameId;
+
+        QJsonObject scoresObj = obj["scores"].toObject();
+
+        for (auto it = scoresObj.begin(); it != scoresObj.end(); ++it)
+        {
+            PlayerScore score;
+            bool ok;
+            score.userId = it.key().toULongLong(&ok);
+            score.score = it.value().toInt();
+
+            if (ok)
+                event.scores.append(score);
+        }
+
+        return event;
+    }
+
+    return std::nullopt;
 }

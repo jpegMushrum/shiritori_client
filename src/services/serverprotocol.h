@@ -51,14 +51,41 @@ struct GameHistoryEntry
     int place;
 };
 
-// New word update from subscription
+enum class GameEventType {
+    WordPlayed,
+    GameStopped,
+    Unknown
+};
+
+struct GameEvent {
+    GameEventType type;
+    qulonglong gameId;
+};
+
+// New word update from subscription or game updates
 struct NewWordUpdate
 {
     qulonglong gameId;
     QString kanji;
-    QString meaning;
+    QList<QString> meanings;
     QList<QString> partsOfSpeech;
     QList<QString> readings;
+};
+
+// Score entry from game ended
+struct PlayerScore
+{
+    qulonglong userId;
+    int score;
+};
+
+struct WordPlayedEvent : GameEvent {
+    NewWordUpdate word;
+    QString lastKana;
+};
+
+struct GameStoppedEvent : GameEvent {
+    QList<PlayerScore> scores;
 };
 
 // Player joined game response
@@ -97,8 +124,8 @@ public:
     // Extract error message
     static QString extractErrorMessage(const QString &response);
 
-    // Parse NewWordUpdate from JSON-like format
-    static std::optional<NewWordUpdate> parseNewWordUpdate(const QString &response);
+    // Parse updates from JSON-like format
+    static std::optional<std::variant<WordPlayedEvent, GameStoppedEvent>> parseGameUpdate(const QString& response);
 
     // Parse PlayerJoinedGameInfo from "playerJoinedGame <gameId> {JSON}"
     static std::optional<PlayerJoinedGameInfo> parsePlayerJoinedGameInfo(const QString &response);

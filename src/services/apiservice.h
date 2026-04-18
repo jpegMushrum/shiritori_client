@@ -83,6 +83,7 @@ signals:
     void gameSocketDisconnected();
     void newWordReceived(const NewWordUpdate &update);
     void gameUpdateReceived(const QString &update);
+    void gameStopped(const GameStoppedEvent &event);
 
     // Subscription signals
     void subscribeSuccess();

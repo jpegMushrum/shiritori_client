@@ -13,8 +13,10 @@ class GameScreen : public BaseScreen
 public:
     explicit GameScreen(QWidget *parent = nullptr);
 
+    void setGameEndScreen(class GameEndScreen *gameEndScreen);
+
 protected:
-    void keyPressEvent(QKeyEvent* e) override;
+    void keyPressEvent(QKeyEvent *e) override;
 
 private slots:
     void onSubmitButtonClicked();
@@ -24,9 +26,8 @@ private slots:
     void onSubscribeError(const QString &error);
     void onSubscribeSuccess();
     void onPlayerJoinedGame(const PlayerJoinedGameInfo &info);
-    // DEPRECATED: getGameInfo is now handled by addPlayerToGame
-    // void onGameInfoReceived(const GameContext &game);
-    // void onGameInfoError(const QString &error);
+    void onGameStopped(const GameStoppedEvent &event);
+
     void onWordHandled(HandleWordStatus status);
     void onWordHandleError(const QString &error);
     void onWordListItemClicked(int row);
@@ -36,6 +37,7 @@ private:
     void connectSignals();
 
     ApiService *m_apiService = nullptr;
+    class GameEndScreen *m_gameEndScreen = nullptr;
     qulonglong m_gameId = -1;
     QString m_sessionId;
 

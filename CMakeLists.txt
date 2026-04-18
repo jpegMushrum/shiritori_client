@@ -34,6 +34,8 @@ set(PROJECT_SOURCES
         src/screens/searchgamescreen.cpp
         src/screens/gamescreen.h
         src/screens/gamescreen.cpp
+        src/screens/gameendscreen.h
+        src/screens/gameendscreen.cpp
         src/screens/wordinfodialog.h
         src/screens/wordinfodialog.cpp
         src/screens/statsscreen.h

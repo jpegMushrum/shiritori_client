@@ -15,7 +15,8 @@ public:
         MainScreen = 1,
         SearchGameScreen = 2,
         GameScreen = 3,
-        StatsScreen = 4
+        StatsScreen = 4,
+        GameEndScreen = 5
     };
     Q_ENUM(ScreenType)
 
