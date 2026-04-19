@@ -37,23 +37,32 @@ void Application::setupUI()
     m_stackedWidget = new QStackedWidget(this);
     mainLayout->addWidget(m_stackedWidget);
 
-    // Initializing App state and Api Service
+    // Initializing App state
     AppState &appState = AppState::getInstance();
-    auto *apiTcpClient = new TcpClient(this);
-    appState.setApiTcpClient(apiTcpClient);
+
+    // Create notification manager
+    m_toastWidget = new ToastWidget(this);
+    m_notificationManager = new NotificationManager(this);
+    m_notificationManager->setToastWidget(m_toastWidget);
+
+    // Make notification manager accessible from app state
+    appState.setNotificationManager(m_notificationManager);
+
+    auto *tcpClient = new TcpClient(this);
+    appState.setApiTcpClient(tcpClient);
 
     auto *apiService = new ApiService(this);
     appState.setApiService(apiService);
-    apiService->setTcpClient(apiTcpClient);
+    apiService->setTcpClient(tcpClient);
 
     m_navigator = new ScreenNavigator(m_stackedWidget, this);
 
-    m_loginScreen = new LoginScreen(this);
-    m_mainScreen = new MainScreen(this);
-    m_searchGameScreen = new SearchGameScreen(this);
-    m_gameScreen = new GameScreen(this);
+    m_loginScreen = new LoginScreen(tcpClient, apiService, m_notificationManager, this);
+    m_mainScreen = new MainScreen(apiService, m_notificationManager, this);
+    m_searchGameScreen = new SearchGameScreen(apiService, m_notificationManager, this);
+    m_gameScreen = new GameScreen(apiService, m_notificationManager, this);
     m_gameEndScreen = new GameEndScreen(this);
-    m_statsScreen = new StatsScreen(this);
+    m_statsScreen = new StatsScreen(apiService, m_notificationManager, this);
 
     m_loginScreen->setNavigator(m_navigator);
     m_mainScreen->setNavigator(m_navigator);
@@ -78,16 +87,6 @@ void Application::setupUI()
     {
         gameScreen->setGameEndScreen(gameEndScreen);
     }
-
-    // Create toast widget for notifications
-    m_toastWidget = new ToastWidget(this);
-
-    // Create notification manager
-    m_notificationManager = new NotificationManager(this);
-    m_notificationManager->setToastWidget(m_toastWidget);
-
-    // Make notification manager accessible from app state
-    appState.setNotificationManager(m_notificationManager);
 
     // Create connection status widget and add it to bottom-right
     m_connectionStatusWidget = new ConnectionStatusWidget(this);

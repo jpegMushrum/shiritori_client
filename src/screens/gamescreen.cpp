@@ -10,9 +10,11 @@
 #include <QListWidgetItem>
 
 #include "../utils/appstate.h"
+#include "../services/notificationmanager.h"
+#include "../utils/toast.h"
 
-GameScreen::GameScreen(QWidget *parent)
-    : BaseScreen(parent)
+GameScreen::GameScreen(ApiService *apiService, NotificationManager *notificationManager, QWidget *parent)
+    : BaseScreen(parent), m_apiService(apiService), m_notificationManager(notificationManager)
 {
     setupUI();
 }
@@ -66,10 +68,6 @@ void GameScreen::setupUI()
     connect(exitButton, &QPushButton::clicked, this, &GameScreen::onExitButtonClicked);
     mainLayout->addWidget(exitButton);
 
-    // Setting up api
-    AppState &appState = AppState::getInstance();
-    m_apiService = appState.getApiService();
-
     connectSignals();
 }
 
@@ -114,9 +112,14 @@ void GameScreen::onSubmitButtonClicked()
 
 void GameScreen::keyPressEvent(QKeyEvent *e)
 {
-    if (e->key() == Qt::Key_Enter)
+    if (e->key() == Qt::Key_Return)
     {
         onSubmitButtonClicked();
+        e->accept();
+    }
+    else
+    {
+        BaseScreen::keyPressEvent(e);
     }
 }
 
@@ -148,6 +151,7 @@ void GameScreen::onNewWordReceived(const NewWordUpdate &update)
 void GameScreen::onSubscribeSuccess()
 {
     qDebug() << "Successfully subscribed to game updates";
+    showToast(Toast::NOTIFICATION, "Connected to game!");
 
     if (m_wordInput)
     {
@@ -159,6 +163,7 @@ void GameScreen::onSubscribeSuccess()
 void GameScreen::onSubscribeError(const QString &error)
 {
     qWarning() << "Failed to subscribe to game:" << error;
+    showToast(Toast::ERROR, QString("Connection error: %1").arg(error));
 
     if (m_lastKanaLabel)
     {
@@ -179,41 +184,41 @@ void GameScreen::onWordHandled(HandleWordStatus status)
     switch (status)
     {
     case HandleWordStatus::OK:
-        qDebug() << "Word accepted!";
-        // The new word will come via subscription
+        showToast(Toast::NOTIFICATION, "Word accepted!");
         break;
     case HandleWordStatus::WRONG_ORDER:
-        qWarning() << "Word doesn't start with correct hiragana";
+        showToast(Toast::WARNING, "Word doesn't start with correct hiragana");
         break;
     case HandleWordStatus::NOT_JAPANESE_WORD:
-        qWarning() << "Word not found in dictionary";
+        showToast(Toast::ERROR, "Word not found in dictionary");
         break;
     case HandleWordStatus::NO_SPEACH_PART:
-        qWarning() << "Word missing required speech part";
+        showToast(Toast::ERROR, "Word missing required speech part");
         break;
     case HandleWordStatus::GOT_END_WORD:
-        qWarning() << "Word ends with ん - game over!";
+        showToast(Toast::WARNING, "Word ends with ん - game over!");
         break;
     case HandleWordStatus::GOT_DOUBLED_WORD:
-        qWarning() << "Word was already said in this game";
+        showToast(Toast::WARNING, "Word was already said in this game");
         break;
     case HandleWordStatus::GAME_NOT_FOUND:
-        qWarning() << "Game not found";
+        showToast(Toast::ERROR, "Game not found");
         break;
     case HandleWordStatus::GAME_STOPPED:
-        qWarning() << "Game has been stopped";
+        showToast(Toast::WARNING, "Game has been stopped");
         break;
     case HandleWordStatus::NO_FOUND_PLAYER:
-        qWarning() << "Player not in this game";
+        showToast(Toast::ERROR, "Player not in this game");
         break;
     default:
-        qWarning() << "Unknown word status:" << static_cast<int>(status);
+        showToast(Toast::ERROR, QString("Unknown error: %1").arg(static_cast<int>(status)));
     }
 }
 
 void GameScreen::onWordHandleError(const QString &error)
 {
     qWarning() << "Error submitting word:" << error;
+    showToast(Toast::ERROR, QString("Error: %1").arg(error));
 }
 
 void GameScreen::onPlayerJoinedGame(const PlayerJoinedGameInfo &info)
@@ -322,6 +327,14 @@ void GameScreen::onGameStopped(const GameStoppedEvent &event)
     {
         m_gameEndScreen->displayGameResults(event);
         navigate(ScreenNavigator::GameEndScreen);
+    }
+}
+
+void GameScreen::showToast(Toast::Type type, const QString &message)
+{
+    if (m_notificationManager)
+    {
+        m_notificationManager->showToast(type, message);
     }
 }
 

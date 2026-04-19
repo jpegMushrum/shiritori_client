@@ -4,6 +4,7 @@
 #include "basescreen.h"
 
 class ApiService;
+class NotificationManager;
 struct GameContext;
 
 class MainScreen : public BaseScreen
@@ -11,7 +12,8 @@ class MainScreen : public BaseScreen
     Q_OBJECT
 
 public:
-    explicit MainScreen(QWidget *parent = nullptr);
+    explicit MainScreen(ApiService *apiService, NotificationManager *notificationManager,
+                        QWidget *parent = nullptr);
 
 private slots:
     void onNewGameButtonClicked();
@@ -27,6 +29,7 @@ private:
     void startNewGame();
 
     ApiService *m_apiService = nullptr;
+    class NotificationManager *m_notificationManager = nullptr;
 };
 
 #endif // MAINSCREEN_H

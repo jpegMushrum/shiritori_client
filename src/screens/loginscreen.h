@@ -2,18 +2,19 @@
 #define LOGINSCREEN_H
 
 #include "basescreen.h"
+#include <QLineEdit>
+#include <QLabel>
 
-class QLineEdit;
-class QLabel;
-class TcpClient;
-class ApiService;
+#include "../services/apiservice.h"
+#include "../services/notificationmanager.h"
 
 class LoginScreen : public BaseScreen
 {
     Q_OBJECT
 
 public:
-    explicit LoginScreen(QWidget *parent = nullptr);
+    explicit LoginScreen(TcpClient *tcpClient, ApiService *apiService,
+                         NotificationManager *notificationManager, QWidget *parent = nullptr);
     ~LoginScreen() override;
 
 private slots:
@@ -23,7 +24,6 @@ private slots:
     void onTcpConnectFailed(const QString &errorMessage);
     void onTcpConnectSuccess();
     void onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data = {}) override;
-
 
 private:
     void setupUI();
@@ -38,6 +38,7 @@ private:
 
     TcpClient *m_tcpClient = nullptr;
     ApiService *m_apiService = nullptr;
+    class NotificationManager *m_notificationManager = nullptr;
 };
 
 #endif // LOGINSCREEN_H

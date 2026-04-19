@@ -3,6 +3,7 @@
 
 #include "basescreen.h"
 #include "../services/apiservice.h"
+#include "../services/notificationmanager.h"
 #include <QMap>
 #include <QKeyEvent>
 
@@ -11,7 +12,8 @@ class GameScreen : public BaseScreen
     Q_OBJECT
 
 public:
-    explicit GameScreen(QWidget *parent = nullptr);
+    explicit GameScreen(ApiService *apiService, NotificationManager *notificationManager,
+                        QWidget *parent = nullptr);
 
     void setGameEndScreen(class GameEndScreen *gameEndScreen);
 
@@ -35,9 +37,11 @@ private slots:
 private:
     void setupUI();
     void connectSignals();
+    void showToast(Toast::Type type, const QString &message);
 
     ApiService *m_apiService = nullptr;
     class GameEndScreen *m_gameEndScreen = nullptr;
+    class NotificationManager *m_notificationManager = nullptr;
     qulonglong m_gameId = -1;
     QString m_sessionId;
 

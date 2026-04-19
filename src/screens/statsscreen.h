@@ -5,6 +5,7 @@
 
 class QLabel;
 class ApiService;
+class NotificationManager;
 struct UserInfo;
 
 class StatsScreen : public BaseScreen
@@ -12,7 +13,8 @@ class StatsScreen : public BaseScreen
     Q_OBJECT
 
 public:
-    explicit StatsScreen(QWidget *parent = nullptr);
+    explicit StatsScreen(ApiService *apiService, NotificationManager *notificationManager,
+                         QWidget *parent = nullptr);
 
 private slots:
     void onBackButtonClicked();
@@ -30,6 +32,7 @@ private:
     QLabel *m_errorLabel = nullptr;
 
     ApiService *m_apiService = nullptr;
+    class NotificationManager *m_notificationManager = nullptr;
 };
 
 #endif // STATSSCREEN_H

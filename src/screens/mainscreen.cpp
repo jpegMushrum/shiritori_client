@@ -6,10 +6,12 @@
 #include <QDebug>
 #include "../services/serverprotocol.h"
 #include "../services/apiservice.h"
+#include "../services/notificationmanager.h"
+#include "../utils/toast.h"
 #include "../utils/appstate.h"
 
-MainScreen::MainScreen(QWidget *parent)
-    : BaseScreen(parent)
+MainScreen::MainScreen(ApiService *apiService, NotificationManager *notificationManager, QWidget *parent)
+    : BaseScreen(parent), m_apiService(apiService), m_notificationManager(notificationManager)
 {
     setupUI();
 }
@@ -52,10 +54,7 @@ void MainScreen::setupUI()
 
     mainLayout->addStretch();
 
-    // API service
-    AppState &appState = AppState::getInstance();
-
-    m_apiService = appState.getApiService();
+    // Connect API service signals
     connect(m_apiService, &ApiService::gameStarted, this, &MainScreen::onGameStarted);
     connect(m_apiService, &ApiService::gameStartError, this, &MainScreen::onGameStartError);
 }

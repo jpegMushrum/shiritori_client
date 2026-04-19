@@ -10,10 +10,12 @@
 #include <QDebug>
 #include "../services/serverprotocol.h"
 #include "../services/apiservice.h"
+#include "../services/notificationmanager.h"
+#include "../utils/toast.h"
 #include "../utils/appstate.h"
 
-SearchGameScreen::SearchGameScreen(QWidget *parent)
-    : BaseScreen(parent)
+SearchGameScreen::SearchGameScreen(ApiService *apiService, NotificationManager *notificationManager, QWidget *parent)
+    : BaseScreen(parent), m_apiService(apiService), m_notificationManager(notificationManager)
 {
     setupUI();
 }
@@ -58,9 +60,7 @@ void SearchGameScreen::setupUI()
 
     mainLayout->addLayout(buttonLayout);
 
-    // Setup API service
-    AppState &appState = AppState::getInstance();
-    m_apiService = appState.getApiService();
+    // Connect API service signals
     connect(m_apiService, &ApiService::activeGamesReceived, this, &SearchGameScreen::onActiveGamesReceived);
     connect(m_apiService, &ApiService::activeGamesError, this, &SearchGameScreen::onActiveGamesError);
 }
@@ -78,12 +78,7 @@ void SearchGameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariant
 
 void SearchGameScreen::loadGames()
 {
-    AppState &appState = AppState::getInstance();
-    if (!appState.isLoggedIn())
-    {
-        qDebug() << "Not logged in";
-        return;
-    }
+    // This method is called when the screen opens to request active games
 }
 
 void SearchGameScreen::displayGames(const QList<GameContext> &games)

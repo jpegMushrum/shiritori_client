@@ -8,12 +8,16 @@
 #include "../services/serverprotocol.h"
 #include "../services/apiservice.h"
 
+class ApiService;
+class NotificationManager;
+
 class SearchGameScreen : public BaseScreen
 {
     Q_OBJECT
 
 public:
-    explicit SearchGameScreen(QWidget *parent = nullptr);
+    explicit SearchGameScreen(ApiService *apiService, NotificationManager *notificationManager,
+                              QWidget *parent = nullptr);
 
 private slots:
     void onJoinGameButtonClicked();
@@ -32,6 +36,7 @@ private:
     QLineEdit *m_searchInput = nullptr;
     QTableWidget *m_gamesTable = nullptr;
     ApiService *m_apiService = nullptr;
+    class NotificationManager *m_notificationManager = nullptr;
     qulonglong m_selectedGameId = -1;
 };
 

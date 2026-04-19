@@ -7,10 +7,13 @@
 #include <QDebug>
 #include "../services/tcpclient.h"
 #include "../services/apiservice.h"
+#include "../services/notificationmanager.h"
+#include "../utils/toast.h"
 #include "../utils/appstate.h"
 
-LoginScreen::LoginScreen(QWidget *parent)
-    : BaseScreen(parent)
+LoginScreen::LoginScreen(TcpClient *tcpClient, ApiService *apiService,
+                         NotificationManager *notificationManager, QWidget *parent)
+    : BaseScreen(parent), m_tcpClient(tcpClient), m_apiService(apiService), m_notificationManager(notificationManager)
 {
     setupUI();
 }
@@ -73,13 +76,9 @@ void LoginScreen::setupUI()
     connect(loginButton, &QPushButton::clicked, this, &LoginScreen::onLoginButtonClicked);
     layout->addWidget(loginButton);
 
-    // Api Service
-    AppState &appState = AppState::getInstance();
-    m_apiService = appState.getApiService();
+    // Connect signals
     connect(m_apiService, &ApiService::loginSuccess, this, &LoginScreen::onApiLoginSuccess);
     connect(m_apiService, &ApiService::loginError, this, &LoginScreen::onApiLoginError);
-
-    m_tcpClient = appState.getApiTcpClient();
     connect(m_tcpClient, &TcpClient::connected, this, &LoginScreen::onTcpConnectSuccess);
     connect(m_tcpClient, &TcpClient::connectionError, this, &LoginScreen::onTcpConnectFailed);
 
@@ -140,25 +139,28 @@ void LoginScreen::onLoginButtonClicked()
     m_tcpClient->connectToHost(serverAddress, serverPort);
 }
 
-void LoginScreen::onTcpConnectFailed(const QString &errorMessage) {
+void LoginScreen::onTcpConnectFailed(const QString &errorMessage)
+{
     onApiLoginError(QString("Failed to connect to server.\nTcp error: %1").arg(errorMessage));
 }
 
 void LoginScreen::onTcpConnectSuccess()
 {
-    if (m_loginRequested) {
-    AppState &appState = AppState::getInstance();
-    QString username = appState.getUsername();
+    if (m_loginRequested)
+    {
+        AppState &appState = AppState::getInstance();
+        QString username = appState.getUsername();
 
-    // after connection, send login request
-    m_errorLabel->setText("Logging in...");
-    m_apiService->loginAsync(username);
+        // after connection, send login request
+        m_errorLabel->setText("Logging in...");
+        m_apiService->loginAsync(username);
     }
 }
 
 void LoginScreen::onApiLoginSuccess(const QString &sessionId)
 {
-    if (m_loginRequested){
+    if (m_loginRequested)
+    {
         m_errorLabel->clear();
 
         qDebug() << "Login successful! Session ID:" << sessionId;

@@ -10,7 +10,8 @@
 ToastWidget::ToastWidget(QWidget *parent)
     : QWidget(parent)
 {
-    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
+    setAttribute(Qt::WA_StyledBackground, true);
     setAttribute(Qt::WA_TranslucentBackground);
 
     setupUI();
@@ -54,6 +55,8 @@ void ToastWidget::showToast(const Toast &toast)
     m_currentType = toast.getType();
     m_messageLabel->setText(toast.getMessage());
 
+    qDebug() << "Show toast:" << toast.getType() << toast.getMessage();
+
     // Set background color based on type
     QString bgColor;
     switch (toast.getType())
@@ -71,19 +74,11 @@ void ToastWidget::showToast(const Toast &toast)
 
     setStyleSheet(QString("background-color: %1; border-radius: 8px;").arg(bgColor));
 
-    // Position at bottom center
-    if (QScreen *screen = QApplication::primaryScreen())
-    {
-        QRect geometry = screen->availableGeometry();
-        int x = geometry.center().x() - width() / 2;
-        int y = geometry.bottom() - height() - 30;
-        move(x, y);
-    }
-
-    // Show with fade-in animation
+    // Show with fade-in animation (positioning will be done in showEvent)
     m_fadeOutAnimation->stop();
     setWindowOpacity(0.0);
     show();
+    raise();
     m_fadeInAnimation->start();
 
     startAutoHide();
@@ -101,13 +96,15 @@ void ToastWidget::showEvent(QShowEvent *event)
     QWidget::showEvent(event);
     adjustSize();
 
-    // Reposition after resize
-    if (QScreen *screen = QApplication::primaryScreen())
+    if (parentWidget())
     {
-        QRect geometry = screen->availableGeometry();
-        int x = geometry.center().x() - width() / 2;
-        int y = geometry.bottom() - height() - 30;
-        move(x, y);
+        QWidget *parent = parentWidget();
+
+        int x = parent->width() / 2 - width() / 2;
+        int y = parent->height() - height() - 30;
+
+        QPoint globalPos = parent->mapToGlobal(QPoint(x, y));
+        move(globalPos);
     }
 }
 

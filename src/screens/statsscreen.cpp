@@ -5,10 +5,12 @@
 #include <QDebug>
 #include "../services/serverprotocol.h"
 #include "../services/apiservice.h"
+#include "../services/notificationmanager.h"
+#include "../utils/toast.h"
 #include "../utils/appstate.h"
 
-StatsScreen::StatsScreen(QWidget *parent)
-    : BaseScreen(parent)
+StatsScreen::StatsScreen(ApiService *apiService, NotificationManager *notificationManager, QWidget *parent)
+    : BaseScreen(parent), m_apiService(apiService), m_notificationManager(notificationManager)
 {
     setupUI();
 }
@@ -46,15 +48,15 @@ void StatsScreen::setupUI()
 
     mainLayout->addStretch();
 
-    // Setup API service
-    AppState& appState = AppState::getInstance();
-    m_apiService = appState.getApiService();
+    // Connect API service signals
     connect(m_apiService, &ApiService::userInfoReceived, this, &StatsScreen::onUserInfoReceived);
     connect(m_apiService, &ApiService::userInfoError, this, &StatsScreen::onUserInfoError);
 }
 
-void StatsScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data) {
-    if (screen == ScreenNavigator::StatsScreen) {
+void StatsScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data)
+{
+    if (screen == ScreenNavigator::StatsScreen)
+    {
         loadUserStats();
     }
 }
@@ -62,7 +64,8 @@ void StatsScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &
 void StatsScreen::loadUserStats()
 {
     AppState &appState = AppState::getInstance();
-    if (!appState.isLoggedIn()) {
+    if (!appState.isLoggedIn())
+    {
         qDebug() << "Stats Screen Not logged in";
         m_errorLabel->setText("Not logged in");
         return;
