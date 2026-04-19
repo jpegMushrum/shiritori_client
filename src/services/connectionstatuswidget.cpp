@@ -6,13 +6,15 @@
 #include <QPushButton>
 #include <QIcon>
 #include <QPainter>
+#include <QStyle>
 
 ConnectionStatusWidget::ConnectionStatusWidget(QWidget *parent)
     : QWidget(parent)
 {
-    AppState& appState = AppState::getInstance();
+    AppState &appState = AppState::getInstance();
     m_tcpClient = appState.getApiTcpClient();
-    if (m_tcpClient) {
+    if (m_tcpClient)
+    {
         connect(m_tcpClient, &TcpClient::connected, this, &ConnectionStatusWidget::onConnected);
         connect(m_tcpClient, &TcpClient::disconnected, this, &ConnectionStatusWidget::onDisconnected);
         connect(m_tcpClient, &TcpClient::connectionError, this, &ConnectionStatusWidget::onConnectionError);
@@ -31,7 +33,7 @@ void ConnectionStatusWidget::setupUI()
     layout->setSpacing(5);
 
     m_statusLabel = new QLabel("Server: Disconnected", this);
-    m_statusLabel->setStyleSheet("color: red; font-weight: bold;");
+    m_statusLabel->setObjectName("connectionStatusLabel");
     layout->addWidget(m_statusLabel);
 
     m_reconnectButton = new QPushButton(this);
@@ -42,14 +44,6 @@ void ConnectionStatusWidget::setupUI()
     m_reconnectButton->setToolTip("Reconnect to server");
     connect(m_reconnectButton, &QPushButton::clicked, this, &ConnectionStatusWidget::onReconnectClicked);
     layout->addWidget(m_reconnectButton, 0, Qt::AlignCenter);
-
-    setStyleSheet(R"(
-        ConnectionStatusWidget {
-            border: 1px solid #cccccc;
-            border-radius: 5px;
-            background-color: #f0f0f0;
-        }
-    )");
 
     AppState &appState = AppState::getInstance();
     m_apiService = appState.getApiService();
@@ -78,7 +72,8 @@ QIcon ConnectionStatusWidget::recolorIcon(const QString &path, const QColor &col
 
 void ConnectionStatusWidget::setTcpClient(TcpClient *tcpClient)
 {
-    if (m_tcpClient) {
+    if (m_tcpClient)
+    {
         disconnect(m_tcpClient, &TcpClient::connected, this, &ConnectionStatusWidget::onConnected);
         disconnect(m_tcpClient, &TcpClient::disconnected, this, &ConnectionStatusWidget::onDisconnected);
         disconnect(m_tcpClient, &TcpClient::connectionError, this, &ConnectionStatusWidget::onConnectionError);
@@ -99,9 +94,11 @@ void ConnectionStatusWidget::onConnected()
 {
     updateStatus();
 
-    if (m_loginRequested) {
+    if (m_loginRequested)
+    {
         AppState &appState = AppState::getInstance();
-        if (appState.isLoggedIn()) {
+        if (appState.isLoggedIn())
+        {
             qDebug() << "Reconnection logout";
             m_apiService->logoutAsync(appState.getSessionId());
             appState.logout();
@@ -141,18 +138,24 @@ void ConnectionStatusWidget::updateStatus()
     if (!m_tcpClient)
     {
         m_statusLabel->setText("Server: Error");
-        m_statusLabel->setStyleSheet("color: red; font-weight: bold;");
+        m_statusLabel->setObjectName("connectionStatusLabel");
+        m_statusLabel->style()->unpolish(m_statusLabel);
+        m_statusLabel->style()->polish(m_statusLabel);
         return;
     }
 
     if (m_tcpClient->isConnected())
     {
         m_statusLabel->setText("Server: Connected");
-        m_statusLabel->setStyleSheet("color: green; font-weight: bold;");
+        m_statusLabel->setObjectName("connectionStatusLabelConnected");
+        m_statusLabel->style()->unpolish(m_statusLabel);
+        m_statusLabel->style()->polish(m_statusLabel);
     }
     else
     {
         m_statusLabel->setText("Server: Disconnected");
-        m_statusLabel->setStyleSheet("color: red; font-weight: bold;");
+        m_statusLabel->setObjectName("connectionStatusLabel");
+        m_statusLabel->style()->unpolish(m_statusLabel);
+        m_statusLabel->style()->polish(m_statusLabel);
     }
 }

@@ -11,7 +11,6 @@
 #include "../services/serverprotocol.h"
 #include "../services/apiservice.h"
 #include "../services/notificationmanager.h"
-#include "../utils/toast.h"
 #include "../utils/appstate.h"
 
 SearchGameScreen::SearchGameScreen(ApiService *apiService, NotificationManager *notificationManager, QWidget *parent)
@@ -26,7 +25,7 @@ void SearchGameScreen::setupUI()
     mainLayout->setContentsMargins(20, 20, 20, 20);
 
     auto *titleLabel = new QLabel("Search for Game", this);
-    titleLabel->setStyleSheet("font-size: 24px; font-weight: bold;");
+    titleLabel->setObjectName("titleLabel");
     mainLayout->addWidget(titleLabel);
 
     mainLayout->addSpacing(15);
@@ -42,6 +41,8 @@ void SearchGameScreen::setupUI()
     m_gamesTable->setColumnWidth(1, 100);
     m_gamesTable->setColumnWidth(2, 100);
     m_gamesTable->setSortingEnabled(true);
+    m_gamesTable->verticalHeader()->setVisible(false);
+    m_gamesTable->setShowGrid(false);
     connect(m_gamesTable, &QTableWidget::cellClicked, this, &SearchGameScreen::onTableCellClicked);
     mainLayout->addWidget(m_gamesTable);
 
@@ -90,6 +91,7 @@ void SearchGameScreen::displayGames(const QList<GameContext> &games)
         m_gamesTable->insertRow(0);
         auto *item = new QTableWidgetItem("No games available");
         item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+        item->setTextAlignment(Qt::AlignCenter);
         m_gamesTable->setItem(0, 0, item);
         return;
     }
@@ -113,6 +115,11 @@ void SearchGameScreen::displayGames(const QList<GameContext> &games)
         playersItem->setFlags(playersItem->flags() & ~Qt::ItemIsEditable);
         wordsItem->setFlags(wordsItem->flags() & ~Qt::ItemIsEditable);
         kanaItem->setFlags(kanaItem->flags() & ~Qt::ItemIsEditable);
+
+        idItem->setTextAlignment(Qt::AlignCenter);
+        playersItem->setTextAlignment(Qt::AlignCenter);
+        wordsItem->setTextAlignment(Qt::AlignCenter);
+        kanaItem->setTextAlignment(Qt::AlignCenter);
 
         m_gamesTable->setItem(row, 0, idItem);
         m_gamesTable->setItem(row, 1, playersItem);

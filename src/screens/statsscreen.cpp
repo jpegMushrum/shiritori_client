@@ -6,7 +6,6 @@
 #include "../services/serverprotocol.h"
 #include "../services/apiservice.h"
 #include "../services/notificationmanager.h"
-#include "../utils/toast.h"
 #include "../utils/appstate.h"
 
 StatsScreen::StatsScreen(ApiService *apiService, NotificationManager *notificationManager, QWidget *parent)
@@ -21,21 +20,21 @@ void StatsScreen::setupUI()
     mainLayout->setContentsMargins(20, 20, 20, 20);
 
     auto *titleLabel = new QLabel("Your Statistics", this);
-    titleLabel->setStyleSheet("font-size: 24px; font-weight: bold;");
+    titleLabel->setObjectName("titleLabel");
     mainLayout->addWidget(titleLabel);
 
     mainLayout->addSpacing(30);
 
     m_usernameLabel = new QLabel("Username: Loading...", this);
-    m_usernameLabel->setStyleSheet("font-size: 16px;");
+    m_usernameLabel->setObjectName("infoLabel");
     mainLayout->addWidget(m_usernameLabel);
 
     m_averageWordsLabel = new QLabel("Average Words Per Game: Loading...", this);
-    m_averageWordsLabel->setStyleSheet("font-size: 16px;");
+    m_averageWordsLabel->setObjectName("infoLabel");
     mainLayout->addWidget(m_averageWordsLabel);
 
     m_errorLabel = new QLabel(this);
-    m_errorLabel->setStyleSheet("color: red; font-size: 14px;");
+    m_errorLabel->setObjectName("errorLabel");
     m_errorLabel->setWordWrap(true);
     mainLayout->addWidget(m_errorLabel);
 

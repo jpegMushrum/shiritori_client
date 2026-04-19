@@ -25,13 +25,13 @@ void GameScreen::setupUI()
     mainLayout->setContentsMargins(20, 20, 20, 20);
 
     auto *titleLabel = new QLabel("Shiritori Game", this);
-    titleLabel->setStyleSheet("font-size: 24px; font-weight: bold;");
+    titleLabel->setObjectName("titleLabel");
     mainLayout->addWidget(titleLabel);
 
     mainLayout->addSpacing(15);
 
     m_lastKanaLabel = new QLabel("Last Kana: あ", this);
-    m_lastKanaLabel->setStyleSheet("font-size: 18px; font-weight: bold;");
+    m_lastKanaLabel->setObjectName("subtitle");
     mainLayout->addWidget(m_lastKanaLabel);
 
     mainLayout->addSpacing(15);

@@ -64,7 +64,7 @@ void LoginScreen::setupUI()
 
     // Error label
     m_errorLabel = new QLabel(this);
-    m_errorLabel->setStyleSheet("color: red;");
+    m_errorLabel->setObjectName("errorLabel");
     m_errorLabel->setWordWrap(true);
     layout->addWidget(m_errorLabel);
 

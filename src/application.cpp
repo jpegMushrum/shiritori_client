@@ -13,8 +13,12 @@
 #include "utils/constants.h"
 #include "utils/screennavigator.h"
 #include "utils/appstate.h"
+#include <QFile>
+#include <QCommonStyle>
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QApplication>
+#include <QFontDatabase>
 
 Application::Application(QWidget *parent)
     : QMainWindow(parent)
@@ -29,6 +33,20 @@ Application::~Application()
 
 void Application::setupUI()
 {
+    // Add Fonts
+    QFontDatabase::addApplicationFont(":/fonts/FunnelDisplay-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/ShipporiMincho-Regular.ttf");
+
+    // Load application stylesheet
+    QFile styleFile(":/styles.qss");
+    if (styleFile.open(QFile::ReadOnly))
+    {
+        QString style = QLatin1String(styleFile.readAll());
+        qApp->setStyle(new QCommonStyle());
+        qApp->setStyleSheet(style);
+        styleFile.close();
+    }
+
     // Create a central widget to hold both the stacked widget and the status widget
     auto *centralWidget = new QWidget(this);
     auto *mainLayout = new QVBoxLayout(centralWidget);

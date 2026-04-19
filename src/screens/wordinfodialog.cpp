@@ -24,7 +24,7 @@ void WordInfoDialog::setupUI(const QString &kanji, const QStringList &readings,
     // Kanji title
     auto *kanjiLabel = new QLabel(this);
     kanjiLabel->setText(kanji);
-    kanjiLabel->setStyleSheet("font-size: 32px; font-weight: bold;");
+    kanjiLabel->setObjectName("wordKanji");
     kanjiLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(kanjiLabel);
 
@@ -32,25 +32,25 @@ void WordInfoDialog::setupUI(const QString &kanji, const QStringList &readings,
 
     // Readings section
     auto *readingsHeaderLabel = new QLabel("Readings:", this);
-    readingsHeaderLabel->setStyleSheet("font-weight: bold;");
+    readingsHeaderLabel->setObjectName("dialogSectionHeader");
     mainLayout->addWidget(readingsHeaderLabel);
 
     QString readingsText = readings.join(", ");
     auto *readingsLabel = new QLabel(readingsText, this);
+    readingsLabel->setObjectName("dialogContent");
     readingsLabel->setWordWrap(true);
-    readingsLabel->setStyleSheet("color: #555;");
     mainLayout->addWidget(readingsLabel);
 
     mainLayout->addSpacing(10);
 
     // Translation section
     auto *translationHeaderLabel = new QLabel("Translation:", this);
-    translationHeaderLabel->setStyleSheet("font-weight: bold;");
+    translationHeaderLabel->setObjectName("dialogSectionHeader");
     mainLayout->addWidget(translationHeaderLabel);
 
     auto *translationLabel = new QLabel(translation, this);
+    translationLabel->setObjectName("dialogContent");
     translationLabel->setWordWrap(true);
-    translationLabel->setStyleSheet("color: #555;");
     mainLayout->addWidget(translationLabel);
 
     mainLayout->addSpacing(10);
@@ -59,13 +59,13 @@ void WordInfoDialog::setupUI(const QString &kanji, const QStringList &readings,
     if (!partOfSpeech.isEmpty())
     {
         auto *posHeaderLabel = new QLabel("Parts of Speech:", this);
-        posHeaderLabel->setStyleSheet("font-weight: bold;");
+        posHeaderLabel->setObjectName("dialogSectionHeader");
         mainLayout->addWidget(posHeaderLabel);
 
         QString posText = partOfSpeech.join(", ");
         auto *posLabel = new QLabel(posText, this);
+        posLabel->setObjectName("dialogContent");
         posLabel->setWordWrap(true);
-        posLabel->setStyleSheet("color: #555;");
         mainLayout->addWidget(posLabel);
 
         mainLayout->addSpacing(10);

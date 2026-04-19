@@ -1,5 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/reconnect.png</file>
+        <file>styles.qss</file>
+        <file>icons/caret-arrow-down.png</file>
+        <file>icons/caret-arrow-up.png</file>
+        <file>fonts/FunnelDisplay-Regular.ttf</file>
+        <file>fonts/ShipporiMincho-Regular.ttf</file>
     </qresource>
 </RCC>

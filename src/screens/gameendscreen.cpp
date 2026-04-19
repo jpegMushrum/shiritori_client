@@ -17,7 +17,7 @@ void GameEndScreen::setupUI()
     mainLayout->setContentsMargins(20, 20, 20, 20);
 
     auto *titleLabel = new QLabel("Game Over", this);
-    titleLabel->setStyleSheet("font-size: 28px; font-weight: bold;");
+    titleLabel->setObjectName("largeTitle");
     mainLayout->addWidget(titleLabel, 0, Qt::AlignCenter);
 
     mainLayout->addSpacing(40);
@@ -25,7 +25,7 @@ void GameEndScreen::setupUI()
     // Placeholder for image (to be added later)
     m_placeHolderImageLabel = new QLabel(this);
     m_placeHolderImageLabel->setMinimumHeight(150);
-    m_placeHolderImageLabel->setStyleSheet("background-color: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px;");
+    m_placeHolderImageLabel->setObjectName("gameEndPlaceholder");
     m_placeHolderImageLabel->setText("[Image will be placed here]");
     m_placeHolderImageLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(m_placeHolderImageLabel, 0, Qt::AlignCenter);
@@ -34,7 +34,7 @@ void GameEndScreen::setupUI()
 
     // Score display
     m_scoreLabel = new QLabel(this);
-    m_scoreLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: #333;");
+    m_scoreLabel->setObjectName("scoreLabel");
     m_scoreLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(m_scoreLabel);
 

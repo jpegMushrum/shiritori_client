@@ -6,13 +6,13 @@
 #include <QScreen>
 #include <QApplication>
 #include <QPropertyAnimation>
+#include <QStyle>
 
 ToastWidget::ToastWidget(QWidget *parent)
     : QWidget(parent)
 {
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
     setAttribute(Qt::WA_StyledBackground, true);
-    setAttribute(Qt::WA_TranslucentBackground);
 
     setupUI();
 
@@ -40,8 +40,8 @@ void ToastWidget::setupUI()
     layout->setContentsMargins(20, 15, 20, 15);
 
     m_messageLabel = new QLabel(this);
+    m_messageLabel->setObjectName("toastMessage");
     m_messageLabel->setAlignment(Qt::AlignCenter);
-    m_messageLabel->setStyleSheet("color: white; font-size: 14px;");
     m_messageLabel->setWordWrap(true);
     m_messageLabel->setMaximumWidth(400);
 
@@ -57,22 +57,24 @@ void ToastWidget::showToast(const Toast &toast)
 
     qDebug() << "Show toast:" << toast.getType() << toast.getMessage();
 
-    // Set background color based on type
-    QString bgColor;
+    // Set object name for stylesheet selector
     switch (toast.getType())
     {
     case Toast::NOTIFICATION:
-        bgColor = "rgba(0, 100, 200, 200)";
+        setObjectName("notification");
         break;
     case Toast::WARNING:
-        bgColor = "rgba(200, 150, 0, 200)";
+        setObjectName("warning");
         break;
     case Toast::ERROR:
-        bgColor = "rgba(200, 0, 0, 200)";
+        setObjectName("error");
         break;
     }
 
-    setStyleSheet(QString("background-color: %1; border-radius: 8px;").arg(bgColor));
+    // Force style update
+    style()->polish(this);
+    update();
+    repaint();
 
     // Show with fade-in animation (positioning will be done in showEvent)
     m_fadeOutAnimation->stop();
