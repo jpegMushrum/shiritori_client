@@ -1,5 +1,6 @@
 #include "apiservice.h"
 #include "tcpclient.h"
+#include "serverprotocol.h"
 #include "../utils/appstate.h"
 
 #include <QTcpSocket>
@@ -411,7 +412,7 @@ void ApiService::subscribeResponse(const QString &response, int requestId)
                            // === GAME STOPPED ===
                            else if constexpr (std::is_same_v<T, GameStoppedEvent>)
                            {
-                               qDebug() << "Game stopped - Scores count:" << e.scores.size();
+                               qDebug() << "Game stopped - Scores:" << e.scores.userId << e.scores.score;
 
                                emit gameStopped(e);
                                isGameStopped = true;

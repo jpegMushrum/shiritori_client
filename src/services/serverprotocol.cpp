@@ -2,6 +2,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QDebug>
+#include <variant>
 
 std::optional<UserInfo> ServerProtocolParser::parseUserInfo(const QString &response)
 {
@@ -286,7 +288,7 @@ std::optional<PlayerJoinedGameInfo> ServerProtocolParser::parsePlayerJoinedGameI
 }
 
 std::optional<std::variant<WordPlayedEvent, GameStoppedEvent>>
-ServerProtocolParser::parseGameUpdate(const QString& response)
+ServerProtocolParser::parseGameUpdate(const QString &response)
 {
     if (!response.startsWith("gameUpdate"))
         return std::nullopt;
@@ -298,7 +300,8 @@ ServerProtocolParser::parseGameUpdate(const QString& response)
 
     bool ok;
     qulonglong gameId = response.mid(firstSpace + 1,
-                                     secondSpace - firstSpace - 1).toULongLong(&ok);
+                                     secondSpace - firstSpace - 1)
+                            .toULongLong(&ok);
     if (!ok)
         return std::nullopt;
 
@@ -350,18 +353,20 @@ ServerProtocolParser::parseGameUpdate(const QString& response)
 
         QJsonObject scoresObj = obj["scores"].toObject();
 
-        for (auto it = scoresObj.begin(); it != scoresObj.end(); ++it)
+        bool ok;
+        event.scores.userId = scoresObj["userId"].toVariant().toULongLong(&ok);
+        event.scores.score = scoresObj["score"].toInt();
+
+        if (ok)
         {
-            PlayerScore score;
-            bool ok;
-            score.userId = it.key().toULongLong(&ok);
-            score.score = it.value().toInt();
-
-            if (ok)
-                event.scores.append(score);
+            qDebug() << "Game stopped - User:" << event.scores.userId << "Score:" << event.scores.score;
+            return event;
         }
-
-        return event;
+        else
+        {
+            qWarning() << "Failed to parse scores object";
+            return std::nullopt;
+        }
     }
 
     return std::nullopt;

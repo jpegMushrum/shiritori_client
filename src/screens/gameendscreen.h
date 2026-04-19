@@ -3,7 +3,6 @@
 
 #include "basescreen.h"
 #include "../services/serverprotocol.h"
-#include <QList>
 
 class GameEndScreen : public BaseScreen
 {
@@ -15,12 +14,13 @@ public:
 
 private slots:
     void onMainMenuButtonClicked();
-    void onOpen(ScreenNavigator::ScreenType screen, const QVariantMap& data) override;
+    void onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data = {}) override;
 
 private:
     void setupUI();
 
-    class QTableWidget *m_scoresTable = nullptr;
+    class QLabel *m_scoreLabel = nullptr;
+    class QLabel *m_placeHolderImageLabel = nullptr;
     GameStoppedEvent m_lastEvent;
 };
 

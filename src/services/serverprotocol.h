@@ -4,6 +4,7 @@
 #include <QString>
 #include <QList>
 #include <optional>
+#include <variant>
 
 // Handle Word Response Status Codes
 enum class HandleWordStatus
@@ -51,13 +52,15 @@ struct GameHistoryEntry
     int place;
 };
 
-enum class GameEventType {
+enum class GameEventType
+{
     WordPlayed,
     GameStopped,
     Unknown
 };
 
-struct GameEvent {
+struct GameEvent
+{
     GameEventType type;
     qulonglong gameId;
 };
@@ -79,13 +82,15 @@ struct PlayerScore
     int score;
 };
 
-struct WordPlayedEvent : GameEvent {
+struct WordPlayedEvent : GameEvent
+{
     NewWordUpdate word;
     QString lastKana;
 };
 
-struct GameStoppedEvent : GameEvent {
-    QList<PlayerScore> scores;
+struct GameStoppedEvent : GameEvent
+{
+    PlayerScore scores;
 };
 
 // Player joined game response
@@ -125,7 +130,7 @@ public:
     static QString extractErrorMessage(const QString &response);
 
     // Parse updates from JSON-like format
-    static std::optional<std::variant<WordPlayedEvent, GameStoppedEvent>> parseGameUpdate(const QString& response);
+    static std::optional<std::variant<WordPlayedEvent, GameStoppedEvent>> parseGameUpdate(const QString &response);
 
     // Parse PlayerJoinedGameInfo from "playerJoinedGame <gameId> {JSON}"
     static std::optional<PlayerJoinedGameInfo> parsePlayerJoinedGameInfo(const QString &response);

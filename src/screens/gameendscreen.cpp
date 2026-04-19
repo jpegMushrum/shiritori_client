@@ -3,10 +3,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
-#include <QTableWidget>
-#include <QTableWidgetItem>
-#include <QHeaderView>
-#include <algorithm>
+#include <QDebug>
 
 GameEndScreen::GameEndScreen(QWidget *parent)
     : BaseScreen(parent)
@@ -21,75 +18,56 @@ void GameEndScreen::setupUI()
 
     auto *titleLabel = new QLabel("Game Over", this);
     titleLabel->setStyleSheet("font-size: 28px; font-weight: bold;");
-    mainLayout->addWidget(titleLabel);
+    mainLayout->addWidget(titleLabel, 0, Qt::AlignCenter);
 
-    mainLayout->addSpacing(20);
+    mainLayout->addSpacing(40);
 
-    // Create scores table
-    m_scoresTable = new QTableWidget(this);
-    m_scoresTable->setColumnCount(2);
-    m_scoresTable->setHorizontalHeaderLabels({"User ID", "Score"});
-    m_scoresTable->horizontalHeader()->setStretchLastSection(true);
-    m_scoresTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_scoresTable->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_scoresTable->setColumnWidth(0, 150);
-    m_scoresTable->setColumnWidth(1, 150);
-    m_scoresTable->setSortingEnabled(true);
-    mainLayout->addWidget(m_scoresTable);
+    // Placeholder for image (to be added later)
+    m_placeHolderImageLabel = new QLabel(this);
+    m_placeHolderImageLabel->setMinimumHeight(150);
+    m_placeHolderImageLabel->setStyleSheet("background-color: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px;");
+    m_placeHolderImageLabel->setText("[Image will be placed here]");
+    m_placeHolderImageLabel->setAlignment(Qt::AlignCenter);
+    mainLayout->addWidget(m_placeHolderImageLabel, 0, Qt::AlignCenter);
 
-    mainLayout->addSpacing(15);
+    mainLayout->addSpacing(40);
 
+    // Score display
+    m_scoreLabel = new QLabel(this);
+    m_scoreLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: #333;");
+    m_scoreLabel->setAlignment(Qt::AlignCenter);
+    mainLayout->addWidget(m_scoreLabel);
+
+    mainLayout->addSpacing(30);
+
+    // Main menu button
     auto *buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
     auto *mainMenuButton = new QPushButton("Main Menu", this);
     mainMenuButton->setMinimumHeight(40);
+    mainMenuButton->setMinimumWidth(120);
     connect(mainMenuButton, &QPushButton::clicked, this, &GameEndScreen::onMainMenuButtonClicked);
     buttonLayout->addWidget(mainMenuButton);
+    buttonLayout->addStretch();
 
     mainLayout->addLayout(buttonLayout);
+    mainLayout->addStretch();
 }
 
 void GameEndScreen::displayGameResults(const GameStoppedEvent &event)
 {
     m_lastEvent = event;
 
-    m_scoresTable->setRowCount(0);
-
-    // Sort scores by score descending
-    auto sortedScores = event.scores;
-    std::sort(sortedScores.begin(), sortedScores.end(),
-              [](const PlayerScore &a, const PlayerScore &b)
-              {
-                  return a.score > b.score;
-              });
-
-    int row = 0;
-    for (const auto &score : sortedScores)
-    {
-        m_scoresTable->insertRow(row);
-
-        auto *userIdItem = new QTableWidgetItem(QString::number(score.userId));
-        auto *scoreItem = new QTableWidgetItem(QString::number(score.score));
-
-        userIdItem->setFlags(userIdItem->flags() & ~Qt::ItemIsEditable);
-        scoreItem->setFlags(scoreItem->flags() & ~Qt::ItemIsEditable);
-
-        // Center align
-        userIdItem->setTextAlignment(Qt::AlignCenter);
-        scoreItem->setTextAlignment(Qt::AlignCenter);
-
-        // Set user role for numeric sorting
-        scoreItem->setData(Qt::UserRole, score.score);
-
-        m_scoresTable->setItem(row, 0, userIdItem);
-        m_scoresTable->setItem(row, 1, scoreItem);
-
-        row++;
-    }
+    const PlayerScore &score = event.scores;
+    m_scoreLabel->setText(QString("Your Score: %1").arg(score.score));
+    qDebug() << "Game ended. Your score:" << score.score;
 }
 
-void GameEndScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap& data = {}) {
-    if (screen == ScreenNavigator::GameEndScreen) {
-        // Something
+void GameEndScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariantMap &data)
+{
+    if (screen == ScreenNavigator::GameEndScreen)
+    {
+        // Handle screen open if needed
     }
 }
 
