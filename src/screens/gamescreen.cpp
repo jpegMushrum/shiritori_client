@@ -10,6 +10,7 @@
 #include <QListWidgetItem>
 
 #include "../utils/appstate.h"
+#include "../services/tcpclient.h"
 #include "../services/notificationmanager.h"
 #include "../utils/toast.h"
 
@@ -86,6 +87,14 @@ void GameScreen::connectSignals()
         connect(m_apiService, &ApiService::wordHandled, this, &GameScreen::onWordHandled);
         connect(m_apiService, &ApiService::wordHandleError, this, &GameScreen::onWordHandleError);
     }
+
+    // Connect to server connection errors
+    AppState &appState = AppState::getInstance();
+    auto *tcpClient = appState.getApiTcpClient();
+    if (tcpClient)
+    {
+        connect(tcpClient, &TcpClient::connectionError, this, &GameScreen::onConnectionError);
+    }
 }
 
 void GameScreen::onSubmitButtonClicked()
@@ -139,6 +148,10 @@ void GameScreen::onNewWordReceived(const NewWordUpdate &update)
         wordData.translation = update.meanings.join(", ");
         wordData.partOfSpeech = update.partsOfSpeech;
         m_wordDataMap[update.kanji] = wordData;
+
+        // Show toast notification for new word from another player
+        QString meaningText = !update.meanings.isEmpty() ? update.meanings.first() : "No translation";
+        showToast(Toast::NOTIFICATION, QString("Player said: %1 (%2)").arg(update.kanji, meaningText));
     }
 
     // Update last kana - get the last character of the word
@@ -178,6 +191,18 @@ void GameScreen::onSubscribeError(const QString &error)
     }
 }
 
+void GameScreen::onConnectionError()
+{
+    qWarning() << "Connection to server lost";
+    showToast(Toast::ERROR, "Connection to server lost. Game ended.");
+
+    // Disable input when connection is lost
+    if (m_wordInput)
+    {
+        m_wordInput->setEnabled(false);
+    }
+}
+
 void GameScreen::onWordHandled(HandleWordStatus status)
 {
     qDebug() << "Word submitted. Status:" << static_cast<int>(status);
@@ -187,23 +212,32 @@ void GameScreen::onWordHandled(HandleWordStatus status)
     case HandleWordStatus::OK:
         showToast(Toast::NOTIFICATION, "Word accepted!");
         break;
+    case HandleWordStatus::GOT_ERROR:
+        showToast(Toast::ERROR, "Server error");
+        break;
     case HandleWordStatus::WRONG_ORDER:
-        showToast(Toast::WARNING, "Word doesn't start with correct hiragana");
+        showToast(Toast::WARNING, "Not your turn");
         break;
     case HandleWordStatus::NOT_JAPANESE_WORD:
-        showToast(Toast::ERROR, "Word not found in dictionary");
+        showToast(Toast::ERROR, "Word must be in japanese.");
         break;
     case HandleWordStatus::NO_SPEACH_PART:
         showToast(Toast::ERROR, "Word missing required speech part");
         break;
+    case HandleWordStatus::NO_FOUND_WORD:
+        showToast(Toast::ERROR, "Word not in dictionary");
+        break;
     case HandleWordStatus::GOT_END_WORD:
-        showToast(Toast::WARNING, "Word ends with ん - game over!");
+        showToast(Toast::WARNING, "Word ends with ん (game-ending character)");
         break;
     case HandleWordStatus::GOT_DOUBLED_WORD:
         showToast(Toast::WARNING, "Word was already said in this game");
         break;
+    case HandleWordStatus::CANT_JOIN_WORDS:
+        showToast(Toast::WARNING, "Word doesn't start with correct hiragana");
+        break;
     case HandleWordStatus::GAME_NOT_FOUND:
-        showToast(Toast::ERROR, "Game not found");
+        showToast(Toast::ERROR, "Game ID doesn't exist");
         break;
     case HandleWordStatus::GAME_STOPPED:
         showToast(Toast::WARNING, "Game has been stopped");
@@ -211,8 +245,9 @@ void GameScreen::onWordHandled(HandleWordStatus status)
     case HandleWordStatus::NO_FOUND_PLAYER:
         showToast(Toast::ERROR, "Player not in this game");
         break;
+    case HandleWordStatus::UNKNOWN:
     default:
-        showToast(Toast::ERROR, QString("Unknown error: %1").arg(static_cast<int>(status)));
+        showToast(Toast::ERROR, "Unknown error occurred");
     }
 }
 

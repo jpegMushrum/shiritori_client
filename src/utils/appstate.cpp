@@ -73,26 +73,6 @@ bool AppState::isLoggedIn() const
     return !m_sessionId.isEmpty();
 }
 
-ApiService *AppState::getApiService() const
-{
-    return m_apiService;
-}
-
-void AppState::setApiService(ApiService *apiService)
-{
-    m_apiService = apiService;
-}
-
-NotificationManager *AppState::getNotificationManager() const
-{
-    return m_notificationManager;
-}
-
-void AppState::setNotificationManager(NotificationManager *notificationManager)
-{
-    m_notificationManager = notificationManager;
-}
-
 void AppState::logout()
 {
     m_currentUser = User();

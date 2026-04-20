@@ -58,6 +58,8 @@ set(PROJECT_SOURCES
         src/services/tcpclient.cpp
         src/services/connectionstatuswidget.h
         src/services/connectionstatuswidget.cpp
+        src/services/servicethread.h
+        src/services/servicethread.cpp
         src/services/notificationmanager.h 
         src/services/notificationmanager.cpp
         

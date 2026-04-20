@@ -12,10 +12,8 @@ class ConnectionStatusWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ConnectionStatusWidget(QWidget *parent = nullptr);
+    explicit ConnectionStatusWidget(TcpClient *tcpClient, ApiService *apiService, QWidget *parent = nullptr);
     ~ConnectionStatusWidget() override;
-
-    void setTcpClient(TcpClient *tcpClient);
 
 private slots:
     void onConnected();
@@ -24,7 +22,6 @@ private slots:
     void onConnectionError(const QString &errorMessage);
 
 private:
-    QIcon recolorIcon(const QString &path, const QColor &color);
     void setupUI();
     void updateStatus();
 

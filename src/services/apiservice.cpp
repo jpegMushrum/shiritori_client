@@ -6,28 +6,18 @@
 #include <QTcpSocket>
 #include <QDebug>
 
-ApiService::ApiService(QObject *parent)
-    : QObject(parent)
+ApiService::ApiService(TcpClient* tcpClient, QObject *parent)
+    : QObject(parent), m_tcpClient(tcpClient)
 {
-}
-
-ApiService::~ApiService()
-{
-}
-
-void ApiService::setTcpClient(TcpClient *tcpClient)
-{
-    if (m_tcpClient)
-    {
-        disconnect(m_tcpClient, &TcpClient::dataReceived, this, &ApiService::onGetResponse);
-    }
-
-    m_tcpClient = tcpClient;
     if (m_tcpClient)
     {
         connect(m_tcpClient, &TcpClient::dataReceived, this, &ApiService::onGetResponse);
         qDebug() << "Api Service Set TcpClient " << m_tcpClient;
     }
+}
+
+ApiService::~ApiService()
+{
 }
 
 // ==================== Authentication ====================

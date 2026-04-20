@@ -23,13 +23,25 @@ void GameEndScreen::setupUI()
 
     mainLayout->addSpacing(40);
 
-    // Placeholder for image (to be added later)
-    m_placeHolderImageLabel = new QLabel(this);
-    m_placeHolderImageLabel->setMinimumHeight(150);
-    m_placeHolderImageLabel->setObjectName("gameEndPlaceholder");
-    m_placeHolderImageLabel->setText("[Image will be placed here]");
-    m_placeHolderImageLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(m_placeHolderImageLabel, 0, Qt::AlignCenter);
+    // EndGame Image
+    auto *container = new QWidget(this);
+    container->setObjectName("imageContainer");
+    container->setMaximumHeight(300);
+    container->setMaximumWidth(300);
+
+    auto *layout = new QVBoxLayout(container);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    m_imageLabel = new QLabel(container);
+    m_imageLabel->setAlignment(Qt::AlignCenter);
+    m_imageLabel->setScaledContents(true);
+
+    QPixmap pixmap(":/endgame_pic.jpg");
+    m_imageLabel->setPixmap(pixmap);
+
+    layout->addWidget(m_imageLabel);
+
+    mainLayout->addWidget(container, 0, Qt::AlignCenter);
 
     mainLayout->addSpacing(40);
 

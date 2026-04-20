@@ -5,10 +5,8 @@
 #include <QObject>
 #include <QList>
 #include <QHash>
-#include <memory>
 #include <functional>
-#include "../models/user.h"
-#include "../models/game.h"
+#include "tcpclient.h"
 #include "serverprotocol.h"
 
 class TcpClient;
@@ -19,10 +17,8 @@ class ApiService : public QObject
     Q_OBJECT
 
 public:
-    explicit ApiService(QObject *parent = nullptr);
+    explicit ApiService(TcpClient* tcpClient, QObject *parent = nullptr);
     ~ApiService() override;
-
-    void setTcpClient(TcpClient *tcpClient);
 
     // ==================== Authentication ====================
 

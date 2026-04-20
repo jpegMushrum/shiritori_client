@@ -20,7 +20,7 @@ private:
     void setupUI();
 
     class QLabel *m_scoreLabel = nullptr;
-    class QLabel *m_placeHolderImageLabel = nullptr;
+    class QLabel *m_imageLabel = nullptr;
     GameStoppedEvent m_lastEvent;
 };
 

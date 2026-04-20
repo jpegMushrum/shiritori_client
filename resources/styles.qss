@@ -124,6 +124,7 @@ QListWidget {
 
 QListWidget::item:selected {
     background-color: #1f2335;
+    color: #c0caf5;
     border-radius: 10px;
     outline: none;
     border: none;
@@ -174,13 +175,13 @@ QHeaderView::section:last {
 }
 
 QHeaderView::up-arrow {
-    image: url(:/icons/caret-arrow-up.png);
+    image: url(:/icons/caret-arrow-up.svg);
     width: 10px;
     height: 10px;
 }
 
 QHeaderView::down-arrow {
-    image: url(:/icons/caret-arrow-down.png);
+    image: url(:/icons/caret-arrow-down.svg);
     width: 10px;
     height: 10px;
 }
@@ -235,4 +236,11 @@ QLabel#toastMessage {
     color: #c0caf5;
     font-weight: bold;
     font-size: 12px;
+}
+
+/* === EndGame Picture ===*/
+QWidget#imageContainer {
+    border-radius: 20px;
+    background-color: transparent;
+    overflow: hidden;
 }

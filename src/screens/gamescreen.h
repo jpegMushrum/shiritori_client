@@ -27,6 +27,7 @@ private slots:
     void onNewWordReceived(const NewWordUpdate &update);
     void onSubscribeError(const QString &error);
     void onSubscribeSuccess();
+    void onConnectionError();
     void onPlayerJoinedGame(const PlayerJoinedGameInfo &info);
     void onGameStopped(const GameStoppedEvent &event);
 

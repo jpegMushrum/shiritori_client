@@ -2,9 +2,8 @@
 #define APPSTATE_H
 
 #include "../models/user.h"
-#include "../services/apiservice.h"
 
-class NotificationManager;
+class TcpClient;
 
 class AppState
 {
@@ -29,12 +28,6 @@ public:
     TcpClient *getApiTcpClient() const;
     void setApiTcpClient(TcpClient *tcpClient);
 
-    ApiService *getApiService() const;
-    void setApiService(ApiService *apiService);
-
-    NotificationManager *getNotificationManager() const;
-    void setNotificationManager(NotificationManager *notificationManager);
-
     bool isLoggedIn() const;
     void logout();
 
@@ -46,9 +39,6 @@ private:
     QString m_sessionId;
     QString m_username;
     TcpClient *m_apiTcpClient = nullptr;
-
-    ApiService *m_apiService = nullptr;
-    NotificationManager *m_notificationManager = nullptr;
 };
 
 #endif // APPSTATE_H

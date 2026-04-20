@@ -6,9 +6,9 @@
 #include "screens/gamescreen.h"
 #include "screens/gameendscreen.h"
 #include "screens/statsscreen.h"
-#include "services/tcpclient.h"
 #include "services/connectionstatuswidget.h"
 #include "services/notificationmanager.h"
+#include "services/servicethread.h"
 #include "utils/toastwidget.h"
 #include "utils/constants.h"
 #include "utils/screennavigator.h"
@@ -52,7 +52,7 @@ void Application::setupUI()
     auto *containerLayout = new QVBoxLayout(centralWidget);
     containerLayout->setAlignment(Qt::AlignCenter);
 
-    auto* container = new QWidget(this);
+    auto *container = new QWidget(this);
     container->setMaximumWidth(800);
     container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     containerLayout->addWidget(container);
@@ -64,23 +64,21 @@ void Application::setupUI()
     mainLayout->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(m_stackedWidget);
 
-    // Initializing App state
-    AppState &appState = AppState::getInstance();
-
     // Create notification manager
     m_toastWidget = new ToastWidget(this);
     m_notificationManager = new NotificationManager(this);
     m_notificationManager->setToastWidget(m_toastWidget);
 
-    // Make notification manager accessible from app state
-    appState.setNotificationManager(m_notificationManager);
+    // Create and start service thread (TCP and API services run in separate thread)
+    m_serviceThread = new ServiceThread(this);
+    m_serviceThread->start();
 
-    auto *tcpClient = new TcpClient(this);
+    auto *tcpClient = m_serviceThread->getTcpClient();
+    auto *apiService = m_serviceThread->getApiService();
+
+    // Store tcpClient in AppState for legacy code that needs server address
+    AppState &appState = AppState::getInstance();
     appState.setApiTcpClient(tcpClient);
-
-    auto *apiService = new ApiService(this);
-    appState.setApiService(apiService);
-    apiService->setTcpClient(tcpClient);
 
     m_navigator = new ScreenNavigator(m_stackedWidget, this);
 
@@ -116,16 +114,14 @@ void Application::setupUI()
     }
 
     // Create connection status widget and add it to bottom-right
-    m_connectionStatusWidget = new ConnectionStatusWidget(this);
-
+    m_connectionStatusWidget = new ConnectionStatusWidget(tcpClient, apiService, this);
 
     m_connectionStatusWidget->setParent(this);
     m_connectionStatusWidget->raise();
 
     m_connectionStatusWidget->move(
         width() - m_connectionStatusWidget->width() - 20,
-        height() - m_connectionStatusWidget->height() - 20
-    );
+        height() - m_connectionStatusWidget->height() - 20);
 
     setCentralWidget(centralWidget);
 
@@ -141,8 +137,7 @@ void Application::resizeEvent(QResizeEvent *event)
     {
         m_connectionStatusWidget->move(
             width() - m_connectionStatusWidget->width() - 20,
-            height() - m_connectionStatusWidget->height() - 20
-            );
+            height() - m_connectionStatusWidget->height() - 20);
     }
 }
 
