@@ -52,8 +52,8 @@ set(PROJECT_SOURCES
         src/services/apiservice.cpp
         src/services/serverprotocol.h
         src/services/serverprotocol.cpp
-        src/services/gamelogic.h
-        src/services/gamelogic.cpp
+
+
         src/services/tcpclient.h
         src/services/tcpclient.cpp
         src/services/connectionstatuswidget.h
@@ -133,3 +133,154 @@ install(TARGETS shiritori-client
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(shiritori-client)
 endif()
+
+# ==================== TESTS ====================
+enable_testing()
+
+# Find Qt Test module
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test)
+
+# Test sources - Models
+set(TEST_MODELS_SOURCES
+    tests/test_models.h
+    tests/test_models.cpp
+    src/models/user.h
+    src/models/user.cpp
+    src/models/game.h
+    src/models/game.cpp
+)
+
+# Test sources - Utils
+set(TEST_UTILS_SOURCES
+    tests/test_utils.h
+    tests/test_utils.cpp
+    src/utils/appstate.h
+    src/utils/appstate.cpp
+    src/utils/constants.h
+    src/utils/screennavigator.h
+    src/utils/screennavigator.cpp
+)
+
+# Test sources - Services
+set(TEST_SERVICES_SOURCES
+    tests/test_services.h
+    tests/test_services.cpp
+    src/utils/appstate.h
+    src/utils/appstate.cpp
+    src/services/serverprotocol.h
+    src/services/serverprotocol.cpp
+    src/services/apiservice.h
+    src/services/apiservice.cpp
+    src/services/tcpclient.h
+    src/services/tcpclient.cpp
+)
+
+# Test sources - Navigation
+set(TEST_NAVIGATION_SOURCES
+    tests/test_navigation.h
+    tests/test_navigation.cpp
+    src/utils/screennavigator.h
+    src/utils/screennavigator.cpp
+    src/utils/toastwidget.h
+    src/utils/toastwidget.cpp
+    src/utils/toast.h
+    src/utils/toast.cpp
+)
+
+# Test sources - Network
+set(TEST_NETWORK_SOURCES
+    tests/test_network.h
+    tests/test_network.cpp
+    src/services/tcpclient.h
+    src/services/tcpclient.cpp
+    src/services/apiservice.h
+    src/services/apiservice.cpp
+    src/services/serverprotocol.h
+    src/services/serverprotocol.cpp
+    src/utils/appstate.h
+    src/utils/appstate.cpp
+)
+
+# Test sources - Integration
+set(TEST_INTEGRATION_SOURCES
+    tests/test_integration.h
+    tests/test_integration.cpp
+    src/models/user.h
+    src/models/user.cpp
+    src/models/game.h
+    src/models/game.cpp
+    src/utils/appstate.h
+    src/utils/appstate.cpp
+)
+
+# Create test executables
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    # Test Models
+    qt_add_executable(test_models
+        ${TEST_MODELS_SOURCES}
+    )
+    target_link_libraries(test_models PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test)
+    add_test(NAME TestModels COMMAND test_models)
+
+    # Test Utils
+    qt_add_executable(test_utils
+        ${TEST_UTILS_SOURCES}
+    )
+    target_link_libraries(test_utils PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Widgets)
+    add_test(NAME TestUtils COMMAND test_utils)
+
+    # Test Services
+    qt_add_executable(test_services
+        ${TEST_SERVICES_SOURCES}
+    )
+    target_link_libraries(test_services PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Network)
+    add_test(NAME TestServices COMMAND test_services)
+
+    # Test Navigation
+    qt_add_executable(test_navigation
+        ${TEST_NAVIGATION_SOURCES}
+    )
+    target_link_libraries(test_navigation PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Widgets)
+    add_test(NAME TestNavigation COMMAND test_navigation)
+
+    # Test Network
+    qt_add_executable(test_network
+        ${TEST_NETWORK_SOURCES}
+    )
+    target_link_libraries(test_network PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Network)
+    add_test(NAME TestNetwork COMMAND test_network)
+
+    # Test Integration
+    qt_add_executable(test_integration
+        ${TEST_INTEGRATION_SOURCES}
+    )
+    target_link_libraries(test_integration PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test)
+    add_test(NAME TestIntegration COMMAND test_integration)
+
+else()
+    # Qt5 tests
+    add_executable(test_models ${TEST_MODELS_SOURCES})
+    target_link_libraries(test_models PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test)
+    add_test(NAME TestModels COMMAND test_models)
+
+    add_executable(test_utils ${TEST_UTILS_SOURCES})
+    target_link_libraries(test_utils PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Widgets)
+    add_test(NAME TestUtils COMMAND test_utils)
+
+    add_executable(test_services ${TEST_SERVICES_SOURCES})
+    target_link_libraries(test_services PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Network)
+    add_test(NAME TestServices COMMAND test_services)
+
+    add_executable(test_navigation ${TEST_NAVIGATION_SOURCES})
+    target_link_libraries(test_navigation PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Widgets)
+    add_test(NAME TestNavigation COMMAND test_navigation)
+
+    add_executable(test_network ${TEST_NETWORK_SOURCES})
+    target_link_libraries(test_network PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Network)
+    add_test(NAME TestNetwork COMMAND test_network)
+
+    add_executable(test_integration ${TEST_INTEGRATION_SOURCES})
+    target_link_libraries(test_integration PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test)
+    add_test(NAME TestIntegration COMMAND test_integration)
+endif()
+
