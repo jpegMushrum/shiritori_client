@@ -18,9 +18,6 @@ private slots:
     void testAppStateServerAddress();
     void testAppStateLoginLogout();
     void testAppStateSingleton();
-
-    // Constants tests
-    void testConstantsExistence();
 };
 
 #endif // TEST_UTILS_H

@@ -10,6 +10,7 @@ class ConnectionStatusWidget;
 class NotificationManager;
 class ToastWidget;
 class ServiceThread;
+class ApiService;
 
 class Application : public QMainWindow
 {
@@ -21,6 +22,7 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     void setupUI();
@@ -32,6 +34,7 @@ private:
     NotificationManager *m_notificationManager = nullptr;
     ToastWidget *m_toastWidget = nullptr;
     ServiceThread *m_serviceThread = nullptr;
+    ApiService *m_apiService = nullptr;
 
     // Screen pointers
     class BaseScreen *m_loginScreen = nullptr;

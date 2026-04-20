@@ -10,7 +10,6 @@
 #include "services/notificationmanager.h"
 #include "services/servicethread.h"
 #include "utils/toastwidget.h"
-#include "utils/constants.h"
 #include "utils/screennavigator.h"
 #include "utils/appstate.h"
 #include <QFile>
@@ -75,6 +74,7 @@ void Application::setupUI()
 
     auto *tcpClient = m_serviceThread->getTcpClient();
     auto *apiService = m_serviceThread->getApiService();
+    m_apiService = apiService;
 
     // Store tcpClient in AppState for legacy code that needs server address
     AppState &appState = AppState::getInstance();
@@ -126,7 +126,7 @@ void Application::setupUI()
     setCentralWidget(centralWidget);
 
     setWindowTitle("Shiritori Client");
-    resize(Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT);
+    resize(1000, 640);
 }
 
 void Application::resizeEvent(QResizeEvent *event)
@@ -139,6 +139,16 @@ void Application::resizeEvent(QResizeEvent *event)
             width() - m_connectionStatusWidget->width() - 20,
             height() - m_connectionStatusWidget->height() - 20);
     }
+}
+
+void Application::closeEvent(QCloseEvent *event)
+{
+    qDebug() << "Closing app -> sending logout";
+
+    AppState &appState = AppState::getInstance();
+    m_apiService->logoutAsync(appState.getSessionId());
+
+    event->accept();
 }
 
 void Application::connectSignals()

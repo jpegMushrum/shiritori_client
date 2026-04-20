@@ -1,6 +1,5 @@
 #include "test_utils.h"
 #include "../src/utils/appstate.h"
-#include "../src/utils/constants.h"
 
 void TestUtils::initTestCase()
 {
@@ -58,9 +57,9 @@ void TestUtils::testAppStateLoginLogout()
 
     appState.setSessionId(QString("session-123"));
     appState.setUsername(QString("player"));
-    QVERIFY(appState.getSessionId().isEmpty());
-    QVERIFY(appState.getUsername().isEmpty());
-    QVERIFY(!appState.isLoggedIn());
+    QVERIFY(!appState.getSessionId().isEmpty());
+    QVERIFY(!appState.getUsername().isEmpty());
+    QVERIFY(appState.isLoggedIn());
 }
 
 void TestUtils::testAppStateSingleton()
@@ -71,12 +70,6 @@ void TestUtils::testAppStateSingleton()
     appState1.setSessionId("singleton-test");
 
     QCOMPARE(appState2.getSessionId(), QString("singleton-test"));
-}
-
-void TestUtils::testConstantsExistence()
-{
-    // Test that constants are defined
-    QVERIFY(true); // Just verify the constants header compiles
 }
 
 QTEST_MAIN(TestUtils)

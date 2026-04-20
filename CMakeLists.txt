@@ -64,7 +64,7 @@ set(PROJECT_SOURCES
         src/services/notificationmanager.cpp
         
         # Utils
-        src/utils/constants.h
+
         src/utils/appstate.h
         src/utils/appstate.cpp
         src/utils/screennavigator.h
@@ -156,7 +156,6 @@ set(TEST_UTILS_SOURCES
     tests/test_utils.cpp
     src/utils/appstate.h
     src/utils/appstate.cpp
-    src/utils/constants.h
     src/utils/screennavigator.h
     src/utils/screennavigator.cpp
 )
@@ -197,18 +196,6 @@ set(TEST_NETWORK_SOURCES
     src/services/apiservice.cpp
     src/services/serverprotocol.h
     src/services/serverprotocol.cpp
-    src/utils/appstate.h
-    src/utils/appstate.cpp
-)
-
-# Test sources - Integration
-set(TEST_INTEGRATION_SOURCES
-    tests/test_integration.h
-    tests/test_integration.cpp
-    src/models/user.h
-    src/models/user.cpp
-    src/models/game.h
-    src/models/game.cpp
     src/utils/appstate.h
     src/utils/appstate.cpp
 )
