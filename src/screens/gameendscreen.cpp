@@ -18,6 +18,7 @@ void GameEndScreen::setupUI()
 
     auto *titleLabel = new QLabel("Game Over", this);
     titleLabel->setObjectName("largeTitle");
+    titleLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(titleLabel, 0, Qt::AlignCenter);
 
     mainLayout->addSpacing(40);

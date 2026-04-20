@@ -27,7 +27,8 @@ void LoginScreen::setupUI()
     layout->setSpacing(15);
 
     auto *titleLabel = new QLabel("Shiritori Game", this);
-    titleLabel->setStyleSheet("font-size: 24px; font-weight: bold;");
+    titleLabel->setObjectName("titleLabel");
+    titleLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(titleLabel);
 
     layout->addSpacing(20);
@@ -82,6 +83,7 @@ void LoginScreen::setupUI()
     connect(m_tcpClient, &TcpClient::connected, this, &LoginScreen::onTcpConnectSuccess);
     connect(m_tcpClient, &TcpClient::connectionError, this, &LoginScreen::onTcpConnectFailed);
 
+    layout->addSpacing(100);
     layout->addStretch();
 }
 

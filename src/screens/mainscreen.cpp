@@ -7,8 +7,8 @@
 #include "../services/serverprotocol.h"
 #include "../services/apiservice.h"
 #include "../services/notificationmanager.h"
-#include "../utils/toast.h"
 #include "../utils/appstate.h"
+#include <QGraphicsDropShadowEffect>
 
 MainScreen::MainScreen(ApiService *apiService, NotificationManager *notificationManager, QWidget *parent)
     : BaseScreen(parent), m_apiService(apiService), m_notificationManager(notificationManager)
@@ -23,6 +23,7 @@ void MainScreen::setupUI()
 
     auto *titleLabel = new QLabel("Main Menu", this);
     titleLabel->setObjectName("titleLabel");
+    titleLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(titleLabel);
 
     mainLayout->addSpacing(30);

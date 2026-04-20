@@ -26,6 +26,7 @@ void GameScreen::setupUI()
 
     auto *titleLabel = new QLabel("Shiritori Game", this);
     titleLabel->setObjectName("titleLabel");
+    titleLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(titleLabel);
 
     mainLayout->addSpacing(15);
@@ -40,7 +41,6 @@ void GameScreen::setupUI()
     mainLayout->addWidget(wordsLabel);
 
     m_wordsList = new QListWidget(this);
-    m_wordsList->setMaximumHeight(150);
     connect(m_wordsList, &QListWidget::itemClicked, this, [this](QListWidgetItem *item)
             {
         if (!item) return;
@@ -67,6 +67,7 @@ void GameScreen::setupUI()
     exitButton->setMinimumHeight(40);
     connect(exitButton, &QPushButton::clicked, this, &GameScreen::onExitButtonClicked);
     mainLayout->addWidget(exitButton);
+    mainLayout->addSpacing(100);
 
     connectSignals();
 }

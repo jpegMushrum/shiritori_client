@@ -34,6 +34,7 @@ void ConnectionStatusWidget::setupUI()
 
     m_statusLabel = new QLabel("Server: Disconnected", this);
     m_statusLabel->setObjectName("connectionStatusLabel");
+    m_statusLabel->setAlignment(Qt::AlignHCenter);
     layout->addWidget(m_statusLabel);
 
     m_reconnectButton = new QPushButton(this);
@@ -138,7 +139,6 @@ void ConnectionStatusWidget::updateStatus()
     if (!m_tcpClient)
     {
         m_statusLabel->setText("Server: Error");
-        m_statusLabel->setObjectName("connectionStatusLabel");
         m_statusLabel->style()->unpolish(m_statusLabel);
         m_statusLabel->style()->polish(m_statusLabel);
         return;
@@ -147,14 +147,12 @@ void ConnectionStatusWidget::updateStatus()
     if (m_tcpClient->isConnected())
     {
         m_statusLabel->setText("Server: Connected");
-        m_statusLabel->setObjectName("connectionStatusLabelConnected");
         m_statusLabel->style()->unpolish(m_statusLabel);
         m_statusLabel->style()->polish(m_statusLabel);
     }
     else
     {
         m_statusLabel->setText("Server: Disconnected");
-        m_statusLabel->setObjectName("connectionStatusLabel");
         m_statusLabel->style()->unpolish(m_statusLabel);
         m_statusLabel->style()->polish(m_statusLabel);
     }

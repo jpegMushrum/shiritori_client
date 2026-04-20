@@ -2,32 +2,35 @@
 QWidget {
     background-color: #1a1b26; /* глубокий тёмный */
     color: #c0caf5;
-    font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+    font-family: "Funnel Display", "Shippori Mincho", sans-serif;
     font-size: 12px;
 }
 
 /* === LABELS === */
 QLabel {
-    font-family: "Funnel Display", "Shippori Mincho";
     color: #c0caf5;
+    font-size: 16px;
 }
 
 QLabel#titleLabel {
     font-size: 24px;
     font-weight: bold;
     color: #7aa2f7;
+    font-size: 24px;
 }
 
 QLabel#largeTitle {
     font-size: 28px;
     font-weight: bold;
     color: #7aa2f7;
+    font-size: 28px;
 }
 
 QLabel#subtitle {
     font-size: 18px;
     font-weight: bold;
     color: #7aa2f7;
+    font-size: 20px;
 }
 
 QLabel#errorLabel {
@@ -38,27 +41,41 @@ QLabel#infoLabel {
     color: #9aa5ce;
 }
 
-/* === BUTTONS (без "нажатия") === */
+QLabel#dialogSectionHeader {
+    font-size: 18px;
+}
+
+QLabel#dialogContent {
+    font-size: 14px;
+}
+
+QLabel#connectionStatusLabel {
+    font-size: 12px;
+}
+
+/* === BUTTONS === */
 QPushButton {
-    background-color: #2a2f45;
-    color: #c0caf5;
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 13px;
+    background-color: rgba(122, 162, 247, 0.08);
+    color: #7aa2f7;
+
+    border: 1px solid rgba(122, 162, 247, 0.4);
+    border-radius: 10px;
+
+    padding: 10px 20px;
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background-color: rgba(122, 162, 247, 0.15);
+    border: 1px solid #7aa2f7;
+}
+
+QPushButton:pressed {
+    background-color: rgba(122, 162, 247, 0.08);
 }
 
 QPushButton:focus {
     outline: none;
-    border: none;
-}
-
-QPushButton:hover {
-    background-color: #323a5a;
-}
-
-/* УБРАЛИ эффект нажатия */
-QPushButton:pressed {
-    background-color: #2a2f45;
 }
 
 QPushButton:disabled {
@@ -69,18 +86,18 @@ QPushButton:disabled {
 /* === Dialog === */
 
 QLabel#dialogSectionHeader {
-    font-size: 13px;
+    font-size: 18px;
     font-weight: bold;
     color: #7aa2f7;
 }
 
 QLabel#dialogContent {
-    font-size: 12px;
+    font-size: 16px;
     color: #c0caf5;
 }
 
 QLabel#wordKanji {
-    font-size: 28px;
+    font-size: 34px;
     font-weight: bold;
     color: #e0af68;
 }
@@ -100,23 +117,40 @@ QLineEdit:focus {
 /* === LIST === */
 QListWidget {
     background-color: #1f2335;
-    border-radius: 6px;
+    border: 1px solid rgba(122, 162, 247, 0.4);
+    border-radius: 10px;
+    font-size: 16px;
 }
 
 QListWidget::item:selected {
+    background-color: #1f2335;
+    border-radius: 10px;
+    outline: none;
+    border: none;
+}
+
+QListWidget::item:hover {
     background-color: #3b4261;
+    border-radius: 9px;
+}
+
+QListWidget:focus {
+    outline: none;
+}
+
+QListWidget::item:focus {
+    outline: none;
+    border: none;
 }
 
 /* === TABLE === */
 QTableWidget {
-    background-color: #1f2335;
-    border: none;
     gridline-color: #3b4261;
-}
-
-QTableCornerButton::section {
+    font-size: 14px;
     background: transparent;
     border: none;
+    margin: -1px;
+    border-radius: 9px;
 }
 
 QTableWidget:focus {
@@ -124,11 +158,19 @@ QTableWidget:focus {
 }
 
 QHeaderView::section {
-    background-color: #24283b;
+    background-color: #3b4261;
     padding: 6px;
     border: none;
     border-bottom: 1px solid #3b4261;
     font-weight: 600;
+}
+
+QHeaderView::section:first {
+    border-top-left-radius: 9px;
+}
+
+QHeaderView::section:last {
+    border-top-right-radius: 9px;
 }
 
 QHeaderView::up-arrow {
@@ -141,6 +183,16 @@ QHeaderView::down-arrow {
     image: url(:/icons/caret-arrow-down.png);
     width: 10px;
     height: 10px;
+}
+
+QTableWidget::viewport {
+    background: transparent;
+}
+
+QWidget#tableContainer {
+    background-color: #1f2335;
+    border: 1px solid rgba(122, 162, 247, 0.4);
+    border-radius: 10px;
 }
 
 /* === SCROLL === */
@@ -182,4 +234,5 @@ QLabel#toastMessage {
     background: transparent;
     color: #c0caf5;
     font-weight: bold;
+    font-size: 12px;
 }

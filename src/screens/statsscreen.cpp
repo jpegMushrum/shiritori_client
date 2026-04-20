@@ -21,6 +21,7 @@ void StatsScreen::setupUI()
 
     auto *titleLabel = new QLabel("Your Statistics", this);
     titleLabel->setObjectName("titleLabel");
+    titleLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(titleLabel);
 
     mainLayout->addSpacing(30);

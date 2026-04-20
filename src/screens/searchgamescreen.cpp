@@ -26,25 +26,31 @@ void SearchGameScreen::setupUI()
 
     auto *titleLabel = new QLabel("Search for Game", this);
     titleLabel->setObjectName("titleLabel");
+    titleLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(titleLabel);
 
     mainLayout->addSpacing(15);
 
     // Create table with sortable columns
-    m_gamesTable = new QTableWidget(this);
+    auto *container = new QWidget(this);
+    container->setObjectName("tableContainer");
+    mainLayout->addWidget(container);
+
+    auto *layout = new QVBoxLayout(container);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    m_gamesTable = new QTableWidget(container);
     m_gamesTable->setColumnCount(4);
     m_gamesTable->setHorizontalHeaderLabels({"Game ID", "Players", "Words", "Last Kana"});
-    m_gamesTable->horizontalHeader()->setStretchLastSection(true);
+    m_gamesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_gamesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_gamesTable->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_gamesTable->setColumnWidth(0, 100);
-    m_gamesTable->setColumnWidth(1, 100);
-    m_gamesTable->setColumnWidth(2, 100);
     m_gamesTable->setSortingEnabled(true);
     m_gamesTable->verticalHeader()->setVisible(false);
     m_gamesTable->setShowGrid(false);
     connect(m_gamesTable, &QTableWidget::cellClicked, this, &SearchGameScreen::onTableCellClicked);
-    mainLayout->addWidget(m_gamesTable);
+    layout->addWidget(m_gamesTable);
 
     mainLayout->addSpacing(15);
 
@@ -59,7 +65,9 @@ void SearchGameScreen::setupUI()
     connect(backButton, &QPushButton::clicked, this, &SearchGameScreen::onBackButtonClicked);
     buttonLayout->addWidget(backButton);
 
+    buttonLayout->setSizeConstraint(QLayout::SetFixedSize);
     mainLayout->addLayout(buttonLayout);
+    mainLayout->addSpacing(100);
 
     // Connect API service signals
     connect(m_apiService, &ApiService::activeGamesReceived, this, &SearchGameScreen::onActiveGamesReceived);
@@ -71,8 +79,6 @@ void SearchGameScreen::onOpen(ScreenNavigator::ScreenType screen, const QVariant
     if (screen == ScreenNavigator::SearchGameScreen)
     {
         m_gamesTable->sortByColumn(0, Qt::AscendingOrder);
-        // setSortingEnabled(false);
-        // m_gamesTable->setSortingEnabled(true);
         m_apiService->getActiveGamesAsync();
     }
 }

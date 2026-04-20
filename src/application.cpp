@@ -36,7 +36,7 @@ void Application::setupUI()
     // Add Fonts
     QFontDatabase::addApplicationFont(":/fonts/FunnelDisplay-Regular.ttf");
     QFontDatabase::addApplicationFont(":/fonts/ShipporiMincho-Regular.ttf");
-
+    setMinimumWidth(400);
     // Load application stylesheet
     QFile styleFile(":/styles.qss");
     if (styleFile.open(QFile::ReadOnly))
@@ -49,10 +49,19 @@ void Application::setupUI()
 
     // Create a central widget to hold both the stacked widget and the status widget
     auto *centralWidget = new QWidget(this);
-    auto *mainLayout = new QVBoxLayout(centralWidget);
+    auto *containerLayout = new QVBoxLayout(centralWidget);
+    containerLayout->setAlignment(Qt::AlignCenter);
+
+    auto* container = new QWidget(this);
+    container->setMaximumWidth(800);
+    container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    containerLayout->addWidget(container);
+
+    auto *mainLayout = new QVBoxLayout(container);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
     m_stackedWidget = new QStackedWidget(this);
+    mainLayout->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(m_stackedWidget);
 
     // Initializing App state
@@ -109,19 +118,32 @@ void Application::setupUI()
     // Create connection status widget and add it to bottom-right
     m_connectionStatusWidget = new ConnectionStatusWidget(this);
 
-    // Create a container for the status widget in bottom-right
-    auto *statusContainer = new QWidget(this);
-    auto *statusLayout = new QVBoxLayout(statusContainer);
-    statusLayout->setContentsMargins(10, 10, 10, 10);
-    statusLayout->addStretch();
-    statusLayout->addWidget(m_connectionStatusWidget, 0, Qt::AlignBottom | Qt::AlignRight);
 
-    mainLayout->addWidget(statusContainer);
+    m_connectionStatusWidget->setParent(this);
+    m_connectionStatusWidget->raise();
+
+    m_connectionStatusWidget->move(
+        width() - m_connectionStatusWidget->width() - 20,
+        height() - m_connectionStatusWidget->height() - 20
+    );
 
     setCentralWidget(centralWidget);
 
     setWindowTitle("Shiritori Client");
     resize(Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT);
+}
+
+void Application::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+
+    if (m_connectionStatusWidget)
+    {
+        m_connectionStatusWidget->move(
+            width() - m_connectionStatusWidget->width() - 20,
+            height() - m_connectionStatusWidget->height() - 20
+            );
+    }
 }
 
 void Application::connectSignals()

@@ -18,6 +18,9 @@ public:
     explicit Application(QWidget *parent = nullptr);
     ~Application() override;
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
 private:
     void setupUI();
     void connectSignals();
