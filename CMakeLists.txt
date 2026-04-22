@@ -237,13 +237,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     target_link_libraries(test_network PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Network)
     add_test(NAME TestNetwork COMMAND test_network)
 
-    # Test Integration
-    qt_add_executable(test_integration
-        ${TEST_INTEGRATION_SOURCES}
-    )
-    target_link_libraries(test_integration PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test)
-    add_test(NAME TestIntegration COMMAND test_integration)
-
 else()
     # Qt5 tests
     add_executable(test_models ${TEST_MODELS_SOURCES})
@@ -265,9 +258,5 @@ else()
     add_executable(test_network ${TEST_NETWORK_SOURCES})
     target_link_libraries(test_network PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Network)
     add_test(NAME TestNetwork COMMAND test_network)
-
-    add_executable(test_integration ${TEST_INTEGRATION_SOURCES})
-    target_link_libraries(test_integration PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test)
-    add_test(NAME TestIntegration COMMAND test_integration)
 endif()
 

@@ -237,10 +237,3 @@ QLabel#toastMessage {
     font-weight: bold;
     font-size: 12px;
 }
-
-/* === EndGame Picture ===*/
-QWidget#imageContainer {
-    border-radius: 20px;
-    background-color: transparent;
-    overflow: hidden;
-}

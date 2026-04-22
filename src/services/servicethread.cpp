@@ -40,6 +40,9 @@ void ServiceThread::start()
         m_tcpClient = nullptr;
         m_apiService = nullptr; });
 
+    connect(m_thread, &QThread::finished, m_tcpClient, &QObject::deleteLater);
+    connect(m_thread, &QThread::finished, m_apiService, &QObject::deleteLater);
+
     // Start the thread
     m_thread->start();
 }
